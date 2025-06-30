@@ -45,16 +45,20 @@ jobs:
         run: |
           echo "Running security scans..."
 
-          # Run Bandit security scan
-          bandit -r . -f json -o bandit-results.json || true
+          # Run Bandit security scan (exclude env files and common directories)
+          bandit -r . -f json -o bandit-results.json \
+            --exclude "./tests,./test,./venv,./.venv,./node_modules,./.env" || true
 
           # Run Safety check for dependencies
           if [ -f pyproject.toml ]; then
             pip freeze | safety check --stdin --json > safety-results.json || true
           fi
 
-          # Run Semgrep security scan
-          semgrep --config=auto --json --output=semgrep-results.json . || true
+          # Run Semgrep security scan (exclude env files and test directories)
+          semgrep --config=auto --json --output=semgrep-results.json \
+            --exclude=".env" --exclude=".env.*" --exclude="*.env" \
+            --exclude="node_modules" --exclude="tests" --exclude="test" \
+            . || true
 
           # Run npm audit (if applicable)
           if [ -f package.json ]; then
