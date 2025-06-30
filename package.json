@@ -51,7 +51,7 @@
   },
   "scripts": {
     "test": "jest",
-    "lint": "eslint cli/",
+    "lint": "./node_modules/.bin/eslint . --fix",
     "setup": "echo 'Use: npx @stillrivercode/agentic-workflow-template <project-name>' && echo 'Example: npx @stillrivercode/agentic-workflow-template my-ai-project'"
   },
   "main": "cli/index.js",

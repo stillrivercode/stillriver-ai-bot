@@ -35,7 +35,7 @@ npm run setup              # Show usage instructions
 1. **CLI Tool** (`cli/index.js`) - Creates new AI workflow projects from templates
 2. **GitHub Actions Workflows** (`.github/workflows/`) - 11 automated workflows handling:
    - AI task processing (`ai-task.yml`)
-   - Security fixes (`ai-fix-security.yml`) 
+   - Security fixes (`ai-fix-security.yml`)
    - Lint fixes (`ai-fix-lint.yml`)
    - Test fixes (`ai-fix-tests.yml`)
    - Code review automation (`ai-pr-review.yml`)
@@ -60,7 +60,7 @@ npm run setup              # Show usage instructions
 
 The system responds to GitHub issues with specific labels:
 - `ai-task` - General AI development tasks
-- `ai-bug-fix` - AI-assisted bug fixes  
+- `ai-bug-fix` - AI-assisted bug fixes
 - `ai-refactor` - Code refactoring requests
 - `ai-fix-lint`, `ai-fix-security`, `ai-fix-tests` - Automated fixes
 
