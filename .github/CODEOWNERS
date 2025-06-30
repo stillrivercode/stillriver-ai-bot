@@ -1,0 +1,50 @@
+# CODEOWNERS file for agentic-workflow-template
+# This file defines code ownership for automated review assignment
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global default owners - require review for all changes
+* @adslaton
+
+# GitHub Actions workflows - critical for CI/CD and AI automation
+/.github/workflows/ @adslaton
+/.github/ai-templates/ @adslaton
+/.github/ISSUE_TEMPLATE/ @adslaton
+/.github/pull_request_template.md @adslaton
+/.github/semver-config.yml @adslaton
+
+# Core Python source code and AI workflow logic
+/src/ @adslaton
+/tests/ @adslaton
+
+# Configuration files - changes can affect entire project behavior
+pyproject.toml @adslaton
+.pre-commit-config.yaml @adslaton
+.bandit @adslaton
+.secrets.baseline @adslaton
+.semgrepignore @adslaton
+.yamllint.yaml @adslaton
+.markdownlint.yaml @adslaton
+
+# Scripts directory - automation and utility scripts
+/scripts/ @adslaton
+
+# Installation and setup
+install.sh @adslaton
+requirements.txt @adslaton
+
+# Documentation - important for project understanding and adoption
+README.md @adslaton
+CLAUDE.md @adslaton
+CONTRIBUTING.md @adslaton
+DEVELOPMENT.md @adslaton
+/docs/ @adslaton
+/specs/ @adslaton
+
+# Environment and Docker files
+.env* @adslaton
+Dockerfile* @adslaton
+docker-compose*.yml @adslaton
+
+# Security-sensitive files
+.gitignore @adslaton
+.gitattributes @adslaton

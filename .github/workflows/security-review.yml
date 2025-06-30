@@ -1,0 +1,116 @@
+name: Security Review
+
+# This workflow performs automated security analysis when issues are labeled with 'security-review-needed'
+# It uses security scanning tools and AI-powered analysis to identify potential security issues
+
+"on":
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  security-review:
+    runs-on: ubuntu-latest
+    if: >
+      (contains(github.event.issue.labels.*.name, 'security-review-needed') ||
+       contains(github.event.pull_request.labels.*.name, 'security-review-needed')) &&
+      !(contains(github.event.issue.labels.*.name, 'security-review-completed') ||
+        contains(github.event.pull_request.labels.*.name, 'security-review-completed'))
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: |
+          pip install bandit safety semgrep
+          npm install -g audit-ci
+
+      - name: Run security scans
+        continue-on-error: true
+        run: |
+          echo "Running security scans..."
+
+          # Run Bandit security scan
+          bandit -r . -f json -o bandit-results.json || true
+
+          # Run Safety check for dependencies
+          if [ -f pyproject.toml ]; then
+            pip freeze | safety check --stdin --json > safety-results.json || true
+          fi
+
+          # Run Semgrep security scan
+          semgrep --config=auto --json --output=semgrep-results.json . || true
+
+          # Run npm audit (if applicable)
+          if [ -f package.json ]; then
+            npm audit --json > npm-audit-results.json || true
+          fi
+
+      - name: Format security results
+        run: |
+          python3 ./scripts/format-security-results.py
+
+      - name: Install OpenRouter dependencies
+        run: |
+          pip install openai==1.54.3 httpx==0.27.0
+
+      - name: AI-powered security analysis
+        id: ai-analysis
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AI_MODEL: ${{ vars.AI_MODEL || 'anthropic/claude-3.5-sonnet' }}
+        run: |
+          echo "Running AI security analysis..."
+          ./scripts/ai-security-review.sh \
+            "${{ github.event.issue.number || github.event.pull_request.number }}" \
+            "${{ github.event.issue.title || github.event.pull_request.title }}" \
+            "${{ github.event.issue.body || github.event.pull_request.body }}"
+
+      - name: Comment security review results
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f security-report.md ]; then
+            if [ "${{ github.event_name }}" = "issues" ]; then
+              gh issue comment ${{ github.event.issue.number }} --body-file security-report.md
+            elif [ "${{ github.event_name }}" = "pull_request" ]; then
+              gh pr comment ${{ github.event.pull_request.number }} --body-file security-report.md
+            fi
+          fi
+
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-results
+          path: |
+            *-results.json
+            security-report.md
+          retention-days: 30
+
+      - name: Add security review completed label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            gh issue edit ${{ github.event.issue.number }} --add-label "security-review-completed"
+            gh issue edit ${{ github.event.issue.number }} --remove-label "security-review-needed"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            gh pr edit ${{ github.event.pull_request.number }} --add-label "security-review-completed"
+            gh pr edit ${{ github.event.pull_request.number }} --remove-label "security-review-needed"
+          fi

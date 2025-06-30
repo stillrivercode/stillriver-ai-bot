@@ -1,0 +1,298 @@
+# Semantic Versioning Configuration
+# This file defines the rules for automatic semantic version calculation
+# based on conventional commits and repository metadata.
+
+# Version calculation settings
+version:
+  # Enable automatic version increment based on commit analysis
+  auto_increment: true
+
+  # Allow pre-release versions (alpha, beta, rc)
+  allow_pre_release: true
+
+  # Pre-release identifier patterns
+  pre_release_pattern: "alpha|beta|rc"
+
+  # Version format (major.minor.patch or major.minor.patch-prerelease+build)
+  format: "semantic"
+
+  # Initial version to use when no tags exist
+  initial_version: "0.1.0"
+
+  # Files to keep in sync with git tag versions
+  sync_files:
+    - path: "pyproject.toml"
+      pattern: 'version = "{version}"'
+      section: "project"
+
+# Conventional commit type mappings to version bumps
+commit_types:
+  # Breaking changes (major version bump)
+  breaking:
+    patterns:
+      - "BREAKING CHANGE:"
+      - "BREAKING-CHANGE:"
+      - "!:"  # feat!: or fix!: syntax
+    version_bump: "major"
+    category: "💥 Breaking Changes"
+    emoji: "💥"
+
+  # New features (minor version bump)
+  feat:
+    patterns: ["feat"]
+    version_bump: "minor"
+    category: "🚀 Features"
+    emoji: "🚀"
+    aliases: ["feature"]
+
+  # Bug fixes (patch version bump)
+  fix:
+    patterns: ["fix"]
+    version_bump: "patch"
+    category: "🐛 Bug Fixes"
+    emoji: "🐛"
+    aliases: ["bugfix", "hotfix"]
+
+  # Documentation (patch version bump)
+  docs:
+    patterns: ["docs"]
+    version_bump: "patch"
+    category: "📚 Documentation"
+    emoji: "📚"
+    aliases: ["documentation"]
+
+  # Performance improvements (patch version bump)
+  perf:
+    patterns: ["perf"]
+    version_bump: "patch"
+    category: "⚡ Performance"
+    emoji: "⚡"
+    aliases: ["performance"]
+
+  # Code refactoring (patch version bump)
+  refactor:
+    patterns: ["refactor"]
+    version_bump: "patch"
+    category: "♻️ Refactoring"
+    emoji: "♻️"
+
+  # Code style changes (patch version bump)
+  style:
+    patterns: ["style"]
+    version_bump: "patch"
+    category: "🎨 Style"
+    emoji: "🎨"
+
+  # Tests (patch version bump)
+  test:
+    patterns: ["test"]
+    version_bump: "patch"
+    category: "🧪 Tests"
+    emoji: "🧪"
+    aliases: ["tests"]
+
+  # Build system (patch version bump)
+  build:
+    patterns: ["build"]
+    version_bump: "patch"
+    category: "📦 Build"
+    emoji: "📦"
+
+  # CI/CD changes (patch version bump)
+  ci:
+    patterns: ["ci"]
+    version_bump: "patch"
+    category: "👷 CI/CD"
+    emoji: "👷"
+
+  # Maintenance/chores (patch version bump)
+  chore:
+    patterns: ["chore"]
+    version_bump: "patch"
+    category: "🔧 Maintenance"
+    emoji: "🔧"
+    aliases: ["chores", "maintenance"]
+
+  # Reverts (patch version bump)
+  revert:
+    patterns: ["revert"]
+    version_bump: "patch"
+    category: "⏪ Reverts"
+    emoji: "⏪"
+
+# Pull request label mappings for additional categorization
+pr_labels:
+  breaking:
+    patterns: ["breaking", "breaking-change"]
+    version_bump: "major"
+    category: "💥 Breaking Changes"
+
+  feature:
+    patterns: ["feature", "enhancement"]
+    version_bump: "minor"
+    category: "🚀 Features"
+
+  bug:
+    patterns: ["bug", "bugfix", "fix"]
+    version_bump: "patch"
+    category: "🐛 Bug Fixes"
+
+  security:
+    patterns: ["security", "vulnerability"]
+    version_bump: "patch"
+    category: "🔒 Security"
+    emoji: "🔒"
+
+  performance:
+    patterns: ["performance", "perf", "optimization"]
+    version_bump: "patch"
+    category: "⚡ Performance"
+
+  documentation:
+    patterns: ["documentation", "docs"]
+    version_bump: "patch"
+    category: "📚 Documentation"
+
+# Commit analysis settings
+analysis:
+  # Only analyze conventional commits
+  conventional_only: false
+
+  # Include merge commits in analysis
+  include_merge_commits: false
+
+  # Maximum number of days to look back for commits
+  max_history_days: 365
+
+  # Minimum number of commits required for analysis
+  min_commits: 1
+
+  # Ignore patterns (regex)
+  ignore_patterns:
+    - "^Merge branch"
+    - "^Merge pull request"
+    - "^Initial commit"
+    - "^WIP:"
+    - "^wip:"
+
+# Release notes configuration
+release_notes:
+  # Generate release notes automatically
+  enabled: true
+
+  # Categories to include in release notes (in order)
+  categories:
+    - name: "💥 Breaking Changes"
+      commit_types: ["breaking"]
+      pr_labels: ["breaking", "breaking-change"]
+      description: "Changes that break backward compatibility"
+
+    - name: "🚀 Features"
+      commit_types: ["feat"]
+      pr_labels: ["feature", "enhancement"]
+      description: "New features and enhancements"
+
+    - name: "🐛 Bug Fixes"
+      commit_types: ["fix"]
+      pr_labels: ["bug", "bugfix", "fix"]
+      description: "Bug fixes and corrections"
+
+    - name: "🔒 Security"
+      pr_labels: ["security", "vulnerability"]
+      description: "Security improvements and fixes"
+
+    - name: "⚡ Performance"
+      commit_types: ["perf"]
+      pr_labels: ["performance", "perf", "optimization"]
+      description: "Performance improvements"
+
+    - name: "📚 Documentation"
+      commit_types: ["docs"]
+      pr_labels: ["documentation", "docs"]
+      description: "Documentation updates"
+
+    - name: "🔧 Internal Changes"
+      commit_types: ["refactor", "style", "test", "build", "ci", "chore"]
+      description: "Internal improvements and maintenance"
+
+  # Include contributor information
+  include_contributors: true
+
+  # Maximum number of commits to list per category
+  max_commits_per_category: 50
+
+  # Generate summary statistics
+  include_statistics: true
+
+# AI enhancement settings (optional)
+ai_enhancement:
+  # Enable AI-powered release note enhancement
+  enabled: false
+
+  # Maximum cost per release for AI enhancement (USD)
+  max_cost_per_release: 5.00
+
+  # Enhance commit descriptions
+  enhance_descriptions: true
+
+  # Enhance category summaries
+  enhance_summaries: true
+
+  # AI model to use for enhancement
+  model: "pro"
+
+  # Thinking mode for AI analysis
+  thinking_mode: "medium"
+
+# Output format settings
+outputs:
+  # GitHub release format
+  - format: "github_release"
+    template: "github-release"
+    filename: "release-notes.md"
+    enabled: true
+
+  # JSON format for automation
+  - format: "json"
+    filename: "release-data.json"
+    enabled: true
+    include_metadata: true
+
+  # Plain text format
+  - format: "plain_text"
+    filename: "release-notes.txt"
+    enabled: false
+
+  # Changelog format
+  - format: "changelog"
+    filename: "CHANGELOG.md"
+    enabled: true
+    append_mode: true
+
+# Validation settings
+validation:
+  # Validate version progression (no downgrades)
+  enforce_progression: true
+
+  # Allow manual version overrides
+  allow_manual_override: true
+
+  # Require clean working directory
+  require_clean_tree: false
+
+  # Validate conventional commit format
+  validate_commit_format: false
+
+  # Minimum version components (major.minor.patch)
+  min_version_components: 3
+
+# Emergency controls integration
+emergency_controls:
+  # Respect emergency stop mode
+  respect_emergency_stop: true
+
+  # Respect maintenance mode
+  respect_maintenance_mode: true
+
+  # Circuit breaker integration
+  use_circuit_breaker: true
