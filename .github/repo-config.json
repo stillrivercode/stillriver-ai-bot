@@ -1,0 +1,14 @@
+{
+  "name": "stillriver-ai-bot",
+  "description": "AI-powered workflow automation project",
+  "owner": "stillrivercode",
+  "features": [
+    "ai-tasks",
+    "ai-pr-review",
+    "ai-fixes",
+    "cost-monitoring",
+    "security"
+  ],
+  "template": "default",
+  "created": "2025-06-30T16:51:09.291Z"
+}
