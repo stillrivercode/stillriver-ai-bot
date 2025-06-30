@@ -245,7 +245,7 @@ main() {
     log_info "═══════════════════════════════════════════════════"
     log_info "🏁 EXECUTION SUMMARY"
     log_info "═══════════════════════════════════════════════════"
-    log_info "Issue: #$issue_number - $title"
+    # log_info "Issue: #$issue_number - $title"
     log_info "Exit code: $overall_exit_code"
 
     if [[ $overall_exit_code -eq 0 ]]; then
