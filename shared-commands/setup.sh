@@ -173,18 +173,18 @@ show_usage_examples() {
 📋 **Usage Examples**
 
 Direct execution:
-  ./shared-commands/commands/user-story-this.sh --issue 25
-  ./shared-commands/commands/spec-this.sh --issue 25
+  ./shared-commands/commands/create-user-story.sh --title "User Authentication"
+  ./shared-commands/commands/create-spec.sh --title "API Authentication" --user-story-issue 25
   ./shared-commands/commands/analyze-issue.sh --issue 25
 
 EOF
 
     # Show symlink examples if bin directory exists
-    if [[ -d "$PROJECT_ROOT/bin" ]] && [[ -L "$PROJECT_ROOT/bin/user-story-this" ]]; then
+    if [[ -d "$PROJECT_ROOT/bin" ]] && [[ -L "$PROJECT_ROOT/bin/create-user-story" ]]; then
         cat << EOF
 Via symbolic links (if created):
-  ./bin/user-story-this --issue 25
-  ./bin/spec-this --issue 25
+  ./bin/create-user-story --title "User Authentication"
+  ./bin/create-spec --title "API Authentication" --user-story-issue 25
   ./bin/analyze-issue --issue 25
 
 EOF
@@ -193,9 +193,12 @@ EOF
     cat << EOF
 📚 **Available Commands**
 
-- **user-story-this**: Create comprehensive user story documentation
-- **spec-this**: Create detailed technical specifications
+- **create-user-story**: Create comprehensive user story documentation
+- **create-spec**: Create detailed technical specifications
 - **analyze-issue**: Analyze issues for requirements and complexity
+- **create-epic**: Create epic documentation
+- **generate-spec**: Generate specs from existing issues
+- **generate-user-story**: Generate user stories from existing issues
 
 📖 **Documentation**
 
