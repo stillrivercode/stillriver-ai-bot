@@ -121,7 +121,7 @@ process_ai_response() {
     log_info "AI response saved to $response_file (${#response} characters)"
 
     # Check if the response contains code or instructions to implement
-    if echo "$response" | grep -qE "(```|implement|create|modify|update)"; then
+    if echo "$response" | grep -qE '(```|implement|create|modify|update)'; then
         log_info "AI response contains implementation instructions"
         return 0
     else
