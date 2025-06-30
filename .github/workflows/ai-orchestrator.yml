@@ -1,3 +1,4 @@
+---
 name: AI Orchestrator
 
 # AI Orchestrator workflow for coordinated multi-phase fixes
@@ -6,9 +7,9 @@ env:
   WORKFLOW_TIMEOUT_MINUTES: 30
   CLI_INSTALL_TIMEOUT_MINUTES: 5
   AI_EXECUTION_TIMEOUT_MINUTES: ${{ vars.AI_EXECUTION_TIMEOUT_MINUTES || '10' }}
-  DEBUG_MODE: ${{ vars.AI_DEBUG_MODE || 'false' }}
+  DEBUG_MODE: ${{ vars.AI_DEBUG_MODE || false }}
 
-on:
+"on":
   pull_request:
     types: [labeled]
   workflow_run:
