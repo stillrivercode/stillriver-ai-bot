@@ -1,0 +1,28 @@
+# Semgrep ignore file
+# Exclude environment files that may contain example secrets
+.env
+.env.*
+*.env
+
+# Exclude common directories with dependencies or generated content
+node_modules/
+.git/
+.venv/
+venv/
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Exclude test files that may have mock secrets
+**/*test*.js
+**/*test*.py
+**/*spec*.js
+**/tests/
+**/test/
+
+# Exclude documentation and configuration files
+*.md
+*.txt
+LICENSE
+README*
