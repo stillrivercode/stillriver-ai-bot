@@ -1,6 +1,7 @@
+---
 name: 🚀 Automated Release Generator
 
-on:
+"on":
   workflow_dispatch:
     inputs:
       release-type:

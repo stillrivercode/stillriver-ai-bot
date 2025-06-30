@@ -1,10 +1,11 @@
+---
 name: Emergency Controls
 
 # Centralized timeout configuration
 env:
   EMERGENCY_TIMEOUT_MINUTES: 10
 
-on:
+"on":
   workflow_dispatch:
     inputs:
       action:

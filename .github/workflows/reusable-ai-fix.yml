@@ -5,7 +5,7 @@ name: Reusable AI Fix
 env:
   AI_EXECUTION_TIMEOUT_MINUTES: ${{ vars.AI_EXECUTION_TIMEOUT_MINUTES || '10' }}
 
-on:
+"on":
   workflow_call:
     inputs:
       pr_number:
