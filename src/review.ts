@@ -1,9 +1,20 @@
+import * as core from '@actions/core';
+import { callOpenRouter } from './openrouter';
+
 export async function getReview(
   openrouterApiKey: string,
   changedFiles: string[]
 ): Promise<string | null> {
-  // In a real implementation, this would call the OpenRouter API.
-  // For now, it returns a mock review.
-  console.log(`Getting review for ${changedFiles.length} files with key ${openrouterApiKey.substring(0, 4)}...`);
-  return `This is a mock AI review for the ${changedFiles.length} changed files.`;
+  const model = core.getInput('model');
+  const maxTokens = parseInt(core.getInput('max_tokens'), 10);
+  const temperature = parseFloat(core.getInput('temperature'));
+  const timeout = parseInt(core.getInput('request_timeout_seconds'), 10) * 1000;
+
+  const prompt = `
+    Please review the following code changes.
+    Changed files:
+    ${changedFiles.join('\n')}
+  `;
+
+  return callOpenRouter(openrouterApiKey, model, prompt, maxTokens, temperature, timeout);
 }
