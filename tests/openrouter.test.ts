@@ -5,9 +5,17 @@ import * as core from '@actions/core';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+// Suppress console.error and core.setFailed during tests
+let coreSetFailed: jest.SpyInstance;
+
 describe('callOpenRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    coreSetFailed = jest.spyOn(core, 'setFailed').mockImplementation();
+  });
+
+  afterEach(() => {
+    coreSetFailed.mockRestore();
   });
 
   it('should return the content from the first choice', async () => {
@@ -19,6 +27,7 @@ describe('callOpenRouter', () => {
 
     const content = await callOpenRouter('api-key', 'model', 'prompt', 1024, 0.7, 30000);
     expect(content).toBe('AI review content');
+    expect(coreSetFailed).not.toHaveBeenCalled();
   });
 
   it('should return null if there are no choices', async () => {
@@ -28,10 +37,10 @@ describe('callOpenRouter', () => {
 
     const content = await callOpenRouter('api-key', 'model', 'prompt', 1024, 0.7, 30000);
     expect(content).toBeNull();
+    expect(coreSetFailed).not.toHaveBeenCalled();
   });
 
   it('should handle axios errors', async () => {
-    const coreSetFailed = jest.spyOn(core, 'setFailed');
     mockedAxios.post.mockRejectedValue(new Error('Network error'));
 
     const content = await callOpenRouter('api-key', 'model', 'prompt', 1024, 0.7, 30000);

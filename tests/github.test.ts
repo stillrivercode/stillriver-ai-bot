@@ -1,3 +1,4 @@
+import { getOctokit } from '@actions/github';
 import { getChangedFiles, getReviewComments } from '../src/github';
 
 const mockListFiles = jest.fn();
@@ -10,7 +11,7 @@ const octokit = {
       listReviewComments: mockListReviewComments,
     },
   },
-};
+} as unknown as ReturnType<typeof getOctokit>;
 
 describe('GitHub API functions', () => {
   beforeEach(() => {
@@ -26,7 +27,7 @@ describe('GitHub API functions', () => {
         ],
       });
 
-      const files = await getChangedFiles(octokit as any, 'owner', 'repo', 123);
+      const files = await getChangedFiles(octokit, 'owner', 'repo', 123);
 
       expect(files).toEqual([
         { filename: 'file1.ts', patch: 'patch1' },
@@ -49,7 +50,7 @@ describe('GitHub API functions', () => {
         ],
       });
 
-      const comments = await getReviewComments(octokit as any, 'owner', 'repo', 123);
+      const comments = await getReviewComments(octokit, 'owner', 'repo', 123);
 
       expect(comments).toEqual(['comment1', 'comment2']);
       expect(mockListReviewComments).toHaveBeenCalledWith({
