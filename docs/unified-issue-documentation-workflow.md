@@ -130,13 +130,13 @@ project/
 │   └── issue-{NUMBER}-{title}.md
 ├── specs/
 │   └── issue-{NUMBER}-{title}.md
-└── shared-commands/
-    ├── commands/
-    │   ├── create-user-story.sh
-    │   ├── create-spec.sh
-    │   └── analyze-issue.sh
-    └── lib/
-        ├── github-integration.sh
+└── docs/dictionary/
+    ├── core/
+    ├── development/
+    ├── documentation/
+    ├── git/
+    ├── quality-assurance/
+    └── workflow/
         └── documentation-generators.sh
 ```
 
@@ -270,7 +270,7 @@ All generated documentation includes:
 
 ```bash
 # Create user story with GitHub issue
-./shared-commands/commands/create-user-story.sh \
+# Use IDK command: create user story
   --title "Add Real-time Notifications" \
   --body "Users need instant notifications for important events" \
   --labels "feature,frontend" \
@@ -285,7 +285,7 @@ All generated documentation includes:
 
 ```bash
 # Create technical spec linked to user story
-./shared-commands/commands/create-spec.sh \
+# Use IDK command: spec this [feature]
   --title "Real-time Notifications Architecture" \
   --body "WebSocket-based notification system design" \
   --user-story-issue 45 \
@@ -301,7 +301,7 @@ All generated documentation includes:
 
 ```bash
 # Analyze existing issue for documentation needs
-./shared-commands/commands/analyze-issue.sh --issue 47
+# Use IDK command: analyze this issue
 
 # Outputs:
 # - Requirements analysis
