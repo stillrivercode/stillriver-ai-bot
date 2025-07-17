@@ -81,7 +81,7 @@ jobs:
           AI_MODEL: ${{ vars.AI_MODEL || 'anthropic/claude-3.5-sonnet' }}
         run: |
           echo "Running AI security analysis..."
-          ./scripts/ai-security-review.sh \
+          ./scripts/run-security-scan.sh \
             "${{ github.event.issue.number || github.event.pull_request.number }}" \
             "${{ github.event.issue.title || github.event.pull_request.title }}" \
             "${{ github.event.issue.body || github.event.pull_request.body }}"
