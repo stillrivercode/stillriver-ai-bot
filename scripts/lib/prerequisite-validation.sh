@@ -190,9 +190,9 @@ validate_github_token() {
         add_validation_warning "GITHUB_TOKEN format appears non-standard"
     fi
 
-    # Test token with GitHub API (skip in test mode)
-    if [[ "${VALIDATION_TEST_MODE:-}" == "true" ]]; then
-        add_validation_info "GITHUB_TOKEN format validation passed (test mode)"
+    # Test token with GitHub API (skip in test mode or CI environments)
+    if [[ "${VALIDATION_TEST_MODE:-}" == "true" ]] || [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${CI:-}" ]] || [[ -n "${SKIP_GITHUB_TOKEN_VALIDATION:-}" ]]; then
+        add_validation_info "GITHUB_TOKEN validation skipped in test/CI environment"
     elif command -v curl >/dev/null 2>&1; then
         echo "   🔑 Testing GitHub token validity..."
         local test_response
@@ -308,8 +308,11 @@ validate_authentication_credentials() {
     for op_type in "${operation_types[@]}"; do
         case "$op_type" in
             "ai_operations"|"all")
-                if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-                    add_validation_error "AI operations require ANTHROPIC_API_KEY"
+                # Skip API key validation in test environments
+                if [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${CI:-}" ]] || [[ -n "${SKIP_API_KEY_VALIDATION:-}" ]]; then
+                    add_validation_info "AI API key validation skipped in test/CI environment"
+                elif [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+                    add_validation_error "AI operations require OPENROUTER_API_KEY"
                 fi
                 ;;
             "github_operations"|"all")

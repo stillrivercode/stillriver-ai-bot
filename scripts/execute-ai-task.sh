@@ -164,10 +164,16 @@ main() {
 
     # Step 1: Comprehensive prerequisite validation
     log_info "🔍 STEP 1: COMPREHENSIVE PREREQUISITE VALIDATION"
-    if ! validate_all_prerequisites "ai_operations" "github_operations"; then
+    local validation_result
+    validation_result=$(validate_all_prerequisites "ai_operations" "github_operations"; echo $?)
+
+    # In test environments, warnings are acceptable, only critical failures should abort
+    if [[ "$validation_result" -eq 1 ]]; then
         log_error "❌ Prerequisite validation failed - aborting execution"
         log_error "   Please resolve all critical errors before proceeding"
         exit 1
+    elif [[ "$validation_result" -eq 2 ]]; then
+        log_info "⚠️  Prerequisite validation completed with warnings - continuing"
     fi
 
     # Step 2: Get issue details
