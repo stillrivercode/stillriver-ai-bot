@@ -47,6 +47,8 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@types/jest": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
     "@vercel/ncc": "^0.38.3",
     "eslint": "^8.0.0",
     "eslint-plugin-security": "^1.7.1",
