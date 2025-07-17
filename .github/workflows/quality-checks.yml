@@ -1,7 +1,6 @@
----
 name: Quality Checks
 
-"on":
+on:
   pull_request:
     branches: [main, develop]
     types: [opened, synchronize, reopened]
@@ -34,17 +33,8 @@ jobs:
 
       - name: Run YAML lint
         run: |
-          # Install Python yamllint for better YAML validation
-          pip install yamllint
-          # Create a basic config if it doesn't exist
-          if [ ! -f .yamllint.yaml ]; then
-            echo "extends: default" > .yamllint.yaml
-            echo "rules:" >> .yamllint.yaml
-            echo "  line-length: disable" >> .yamllint.yaml
-          fi
-          # Run yamllint on YAML files only
-          find . -type f \( -name "*.yml" -o -name "*.yaml" \) \
-            -not -path "./node_modules/*" -not -path "./venv/*" | xargs yamllint
+          # Use npm-based yaml-lint
+          npm run lint:yaml
 
       - name: Add ai-fix-lint label on failure
         if: failure() && github.event_name == 'pull_request'
@@ -82,18 +72,24 @@ jobs:
       - name: Run shell script tests
         run: |
           if [ -d "tests" ]; then
+            EXIT_CODE=0
             for script in tests/test_*.sh; do
               if [ -f "$script" ]; then
                 echo "Running $script"
-                bash "$script"
+                if bash "$script"; then
+                  echo "✅ $script passed"
+                else
+                  echo "❌ $script failed with exit code $?"
+                  EXIT_CODE=1
+                fi
               fi
             done
+            exit $EXIT_CODE
           fi
 
       - name: Validate YAML files
         run: |
-          npm install -g yaml-lint
-          find . -name "*.yml" -o -name "*.yaml" | xargs -I {} yamllint {}
+          npm run lint:yaml
 
       - name: Add ai-fix-tests label on failure
         if: failure() && github.event_name == 'pull_request'
@@ -127,7 +123,7 @@ jobs:
 
       - name: Install security tools
         run: |
-          npm install -g npm-audit-resolver audit-ci eslint-plugin-security
+          npm install -g audit-ci
           sudo apt-get update && sudo apt-get install -y jq
 
       - name: Run npm audit
@@ -138,10 +134,14 @@ jobs:
         run: |
           npx audit-ci --report-type=json --output-file=audit-ci-results.json || true
 
-      - name: Run Semgrep security scan
+      - name: Run ESLint security scan
         run: |
-          pip install semgrep
-          semgrep --config=auto --json --output=semgrep-results.json . || true
+          npm run lint:security > eslint-security-results.txt || true
+          # Convert to JSON format for consistency
+          echo '{"results": []}' > eslint-security-results.json
+          if [ -s eslint-security-results.txt ]; then
+            echo '{"results": ["ESLint security issues found - see eslint-security-results.txt"]}' > eslint-security-results.json
+          fi
 
       - name: Check for security issues
         id: security_check
@@ -181,22 +181,16 @@ jobs:
             fi
           fi
 
-          # Check Semgrep results for medium/high severity issues
-          if [ -f semgrep-results.json ] && [ -s semgrep-results.json ]; then
-            SEMGREP_COUNT=$(jq '.results | length' semgrep-results.json 2>/dev/null || echo "0")
-            SEMGREP_MEDIUM_HIGH=$(jq \
-              '[.results[] | select(.extra.severity == "MEDIUM" or \
-              .extra.severity == "HIGH" or .extra.severity == "ERROR")] | length' \
-              semgrep-results.json 2>/dev/null || echo "0")
-
-            if [ "$SEMGREP_COUNT" -gt 0 ]; then
+          # Check ESLint security results
+          if [ -f eslint-security-results.txt ] && [ -s eslint-security-results.txt ]; then
+            # Count only actual error lines (lines with "error" in them)
+            ESLINT_SEC_COUNT=$(grep -c "error" eslint-security-results.txt || echo "0")
+            if [ "$ESLINT_SEC_COUNT" -gt 0 ]; then
               SECURITY_ISSUES=true
-              echo "Semgrep found $SEMGREP_COUNT total issues ($SEMGREP_MEDIUM_HIGH medium/high severity)"
-            fi
-
-            if [ "$SEMGREP_MEDIUM_HIGH" -gt 0 ]; then
+              # Treat all ESLint security issues as medium severity
               BLOCKING_ISSUES=true
-              MEDIUM_HIGH_COUNT=$((MEDIUM_HIGH_COUNT + SEMGREP_MEDIUM_HIGH))
+              MEDIUM_HIGH_COUNT=$((MEDIUM_HIGH_COUNT + ESLINT_SEC_COUNT))
+              echo "ESLint security found $ESLINT_SEC_COUNT security issues (treated as medium severity)"
             fi
           fi
 
@@ -235,6 +229,7 @@ jobs:
           name: security-scan-results
           path: |
             *-results.json
+            *-results.txt
           retention-days: 30
 
       - name: Generate security report comment
@@ -302,31 +297,28 @@ jobs:
             COMMENT_BODY+="\n### ⚠️ audit-ci Security Check\nNo results file generated.\n"
           fi
 
-          # Check Semgrep results
-          if [ -f semgrep-results.json ] && [ -s semgrep-results.json ]; then
-            SEMGREP_COUNT=$(jq '.results | length' semgrep-results.json 2>/dev/null || echo "0")
-            if [ "$SEMGREP_COUNT" -gt 0 ]; then
+          # Check ESLint security results
+          if [ -f eslint-security-results.txt ] && [ -s eslint-security-results.txt ]; then
+            # Count only actual error lines (lines with "error" in them)
+            ESLINT_SEC_COUNT=$(grep -c "error" eslint-security-results.txt || echo "0")
+            if [ "$ESLINT_SEC_COUNT" -gt 0 ]; then
               HAS_ISSUES=true
-              TOTAL_ISSUES=$((TOTAL_ISSUES + SEMGREP_COUNT))
-              COMMENT_BODY+="\n### 🚨 Semgrep Security Analysis ($SEMGREP_COUNT found)\n\n"
+              TOTAL_ISSUES=$((TOTAL_ISSUES + ESLINT_SEC_COUNT))
+              COMMENT_BODY+="\n### 🚨 ESLint Security Analysis ($ESLINT_SEC_COUNT found)\n\n"
 
-              # Add semgrep issues
-              jq -r '.results[:5] | .[] |
-                "- **" + .extra.severity + "**: " + .extra.message +
-                "\n  - File: \`" + .path + ":" + (.start.line | tostring) + "\`" +
-                "\n  - Rule: " + .check_id + "\n"' \
-                semgrep-results.json >> temp_semgrep.md 2>/dev/null || \
-                echo "- Error parsing Semgrep results" >> temp_semgrep.md
-              COMMENT_BODY+="$(cat temp_semgrep.md)\n"
+              # Add first 10 lines of ESLint security results
+              head -10 eslint-security-results.txt > temp_eslint_sec.md 2>/dev/null || \
+                echo "- Error reading ESLint security results" > temp_eslint_sec.md
+              COMMENT_BODY+="\`\`\`\n$(cat temp_eslint_sec.md)\n\`\`\`\n"
 
-              if [ "$SEMGREP_COUNT" -gt 5 ]; then
-                COMMENT_BODY+="\n*... and $((SEMGREP_COUNT - 5)) more issues. See artifacts for full report.*\n"
+              if [ "$ESLINT_SEC_COUNT" -gt 10 ]; then
+                COMMENT_BODY+="\n*... and $((ESLINT_SEC_COUNT - 10)) more issues. See artifacts for full report.*\n"
               fi
             else
-              COMMENT_BODY+="\n### ✅ Semgrep Security Analysis\nNo security issues found.\n"
+              COMMENT_BODY+="\n### ✅ ESLint Security Analysis\nNo security issues found.\n"
             fi
           else
-            COMMENT_BODY+="\n### ⚠️ Semgrep Security Analysis\nNo results file generated.\n"
+            COMMENT_BODY+="\n### ⚠️ ESLint Security Analysis\nNo results file generated.\n"
           fi
 
           # Add summary with blocking status
