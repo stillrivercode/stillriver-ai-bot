@@ -161,6 +161,7 @@ The core logic will be modularized into several TypeScript files within the `src
     -   Detailed explanations for all `inputs`.
     -   Advanced usage examples (e.g., using `exclude_patterns`, custom rules).
     -   A "Troubleshooting" section for common errors.
+-   **Examples**: A new `examples/` directory will be created to house sample workflows and configurations that demonstrate various use cases (e.g., basic usage, security-focused review, custom rules).
 -   **Security**: A `SECURITY.md` file outlining security best practices, especially regarding the `github_token` and `openrouter_api_key`.
 
 ## 8. Phase 1 Deliverables Checklist
@@ -169,5 +170,6 @@ The core logic will be modularized into several TypeScript files within the `src
 -   [ ] `action.yml` with the comprehensive input system defined above.
 -   [ ] Automated build and release pipeline using `ncc`.
 -   [ ] Complete documentation suite (`README.md`, `SECURITY.md`).
+-   [ ] A dedicated `examples/` directory with well-documented examples.
 -   [ ] A dedicated test repository demonstrating the action's usage and validating its functionality.
 -   [ ] Unit test suite with at least 80% code coverage.
