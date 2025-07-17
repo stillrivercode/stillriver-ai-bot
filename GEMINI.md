@@ -53,3 +53,18 @@ To use this system, a user needs to:
 *   **Distribution:** The project is packaged as a CLI tool via NPM.
 *   **Security:** Bandit, Semgrep
 *   **Framework:** The project itself is a template generator, but it is built with Node.js (for the CLI) and shell/python scripts for the automation logic.
+
+## Information Dense Keywords (IDK) System
+
+This project uses the `@stillrivercode/information-dense-keywords` package for standardized AI command vocabulary. The full command dictionary is available at `/docs/information-dense-keywords.md`.
+
+**Core Reference**: See [docs/AI.md](docs/AI.md) for shared AI assistant instructions and usage patterns.
+
+## Usage Examples
+
+### Common IDK Commands
+- `create user authentication system` - Generate authentication components
+- `fix this security vulnerability` - Resolve security issues
+- `test this API endpoint` - Generate comprehensive tests
+- `document this codebase` - Create documentation
+- `roadmap this project` - Create development roadmap (see: `docs/roadmaps/roadmap-ai-pr-review-action.md`)
