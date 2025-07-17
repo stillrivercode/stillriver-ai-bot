@@ -23,13 +23,6 @@ MIN_DISK_SPACE_MB=100
 MIN_MEMORY_MB=512
 MAX_LOAD_AVERAGE=10.0
 
-# Network endpoints to test
-readonly NETWORK_TEST_ENDPOINTS=(
-    "https://api.anthropic.com/health"
-    "https://api.github.com"
-    "https://httpbin.org/get"
-)
-
 # Required environment variables for different operations
 REQUIRED_ENV_VARS_AI="OPENROUTER_API_KEY"
 REQUIRED_ENV_VARS_GITHUB="GITHUB_TOKEN"
@@ -62,7 +55,6 @@ validate_all_prerequisites() {
 
     # Run all validation checks
     validate_environment_variables "${operation_types[@]}"
-    validate_network_connectivity
     validate_authentication_credentials "${operation_types[@]}"
     validate_cli_tools "${operation_types[@]}"
     validate_system_resources
@@ -245,46 +237,6 @@ validate_cost_monitoring_vars() {
     fi
 }
 
-# Validate network connectivity
-validate_network_connectivity() {
-    echo "🌐 Validating network connectivity..."
-
-    # Test basic connectivity
-    if ! ping -c 1 8.8.8.8 >/dev/null 2>&1; then
-        add_validation_error "No basic internet connectivity (cannot reach 8.8.8.8)"
-        return 1
-    fi
-
-    # Test DNS resolution
-    if ! nslookup google.com >/dev/null 2>&1; then
-        add_validation_error "DNS resolution not working"
-        return 1
-    fi
-
-    # Test HTTPS connectivity to important endpoints
-    if command -v curl >/dev/null 2>&1; then
-        for endpoint in "${NETWORK_TEST_ENDPOINTS[@]}"; do
-            echo "   🔗 Testing connectivity to: $endpoint"
-            if curl -s --max-time 10 --head "$endpoint" >/dev/null 2>&1; then
-                add_validation_info "✅ Successfully connected to $endpoint"
-            else
-                add_validation_warning "❌ Cannot connect to $endpoint"
-            fi
-        done
-    else
-        add_validation_warning "Cannot test HTTPS connectivity (curl not available)"
-    fi
-
-    # Test proxy configuration if applicable
-    if [[ -n "${HTTP_PROXY:-}${HTTPS_PROXY:-}" ]]; then
-        echo "   🔄 Proxy configuration detected"
-        add_validation_info "HTTP_PROXY: ${HTTP_PROXY:-none}"
-        add_validation_info "HTTPS_PROXY: ${HTTPS_PROXY:-none}"
-    fi
-
-    echo "   ✅ Network connectivity validation completed"
-    echo ""
-}
 
 # Validate authentication credentials
 validate_authentication_credentials() {
