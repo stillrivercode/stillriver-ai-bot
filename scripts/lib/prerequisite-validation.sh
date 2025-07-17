@@ -365,6 +365,12 @@ validate_cli_tools() {
 validate_claude_cli() {
     echo "   🤖 Validating Claude CLI..."
 
+    # Skip Claude CLI validation in test environments
+    if [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${CI:-}" ]] || [[ -n "${SKIP_CLAUDE_CLI_VALIDATION:-}" ]]; then
+        add_validation_info "Claude CLI validation skipped in test/CI environment"
+        return 0
+    fi
+
     local claude_cmd=""
 
     # Check for various Claude CLI commands

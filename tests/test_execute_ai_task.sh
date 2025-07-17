@@ -11,6 +11,7 @@ source "$SCRIPT_DIR/../scripts/lib/common.sh"
 export GITHUB_TOKEN="test_token"
 export GITHUB_REPOSITORY="stillrivercode/stillriver-ai-bot"
 export OPENROUTER_API_KEY="test_key"
+export SKIP_CLAUDE_CLI_VALIDATION="true"
 
 # Test case 1: Valid issue number
 log_info "Running test case 1: Valid issue number"
