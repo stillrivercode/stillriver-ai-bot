@@ -63,36 +63,36 @@ This project uses the `@stillrivercode/information-dense-keywords` package for s
 ### Dictionary Commands by Category
 
 #### Core Commands
-- `create [item]` - Create new components, files, or features → [docs/dictionary/core/create.md](docs/dictionary/core/create.md)
-- `delete [item]` - Remove components, files, or features → [docs/dictionary/core/delete.md](docs/dictionary/core/delete.md)
-- `fix [issue]` - Resolve bugs, errors, or problems → [docs/dictionary/core/fix.md](docs/dictionary/core/fix.md)
-- `select [criteria]` - Choose or filter items based on criteria → [docs/dictionary/core/select.md](docs/dictionary/core/select.md)
+- `create [item]` - Create new components, files, or features
+- `delete [item]` - Remove components, files, or features
+- `fix [issue]` - Resolve bugs, errors, or problems
+- `select [criteria]` - Choose or filter items based on criteria
 
 #### Development Commands
-- `analyze this [component]` - Analyze code structure, patterns, and issues → [docs/dictionary/development/analyze-this.md](docs/dictionary/development/analyze-this.md)
-- `debug this [issue]` - Debug problems and identify root causes → [docs/dictionary/development/debug-this.md](docs/dictionary/development/debug-this.md)
-- `optimize this [code]` - Improve performance and efficiency → [docs/dictionary/development/optimize-this.md](docs/dictionary/development/optimize-this.md)
+- `analyze this [component]` - Analyze code structure, patterns, and issues
+- `debug this [issue]` - Debug problems and identify root causes
+- `optimize this [code]` - Improve performance and efficiency
 
 #### Documentation Commands
-- `document this [code]` - Generate documentation for code → [docs/dictionary/documentation/document-this.md](docs/dictionary/documentation/document-this.md)
-- `explain this [concept]` - Provide explanations and clarifications → [docs/dictionary/documentation/explain-this.md](docs/dictionary/documentation/explain-this.md)
-- `research this [topic]` - Research technologies and best practices → [docs/dictionary/documentation/research-this.md](docs/dictionary/documentation/research-this.md)
+- `document this [code]` - Generate documentation for code
+- `explain this [concept]` - Provide explanations and clarifications
+- `research this [topic]` - Research technologies and best practices
 
 #### Workflow Commands
-- `plan this [implementation]` - Create implementation plans → [docs/dictionary/workflow/plan-this.md](docs/dictionary/workflow/plan-this.md)
-- `spec this [feature]` - Generate technical specifications → [docs/dictionary/workflow/spec-this.md](docs/dictionary/workflow/spec-this.md)
-- `roadmap [project]` - Create project roadmaps → [docs/dictionary/workflow/roadmap.md](docs/dictionary/workflow/roadmap.md)
+- `plan this [implementation]` - Create implementation plans
+- `spec this [feature]` - Generate technical specifications
+- `roadmap [project]` - Create project roadmaps
 
 #### Quality Assurance Commands
-- `test this [code]` - Generate tests and test scenarios → [docs/dictionary/quality-assurance/test-this.md](docs/dictionary/quality-assurance/test-this.md)
-- `review this [code]` - Perform code reviews → [docs/dictionary/quality-assurance/review-this.md](docs/dictionary/quality-assurance/review-this.md)
+- `test this [code]` - Generate tests and test scenarios
+- `review this [code]` - Perform code reviews
 
 #### Git Commands
-- `commit [changes]` - Create commits with proper messages → [docs/dictionary/git/commit.md](docs/dictionary/git/commit.md)
-- `pr [changes]` - Create pull requests → [docs/dictionary/git/pr.md](docs/dictionary/git/pr.md)
-- `gh [action]` - GitHub operations → [docs/dictionary/git/gh.md](docs/dictionary/git/gh.md)
-- `comment [message]` - Add comments to issues/PRs → [docs/dictionary/git/comment.md](docs/dictionary/git/comment.md)
-- `push [changes]` - Push changes to remote repository → [docs/dictionary/git/push.md](docs/dictionary/git/push.md)
+- `commit [changes]` - Create commits with proper messages
+- `pr [changes]` - Create pull requests
+- `gh [action]` - GitHub operations
+- `comment [message]` - Add comments to issues/PRs
+- `push [changes]` - Push changes to remote repository
 
 ### Command Chaining
 Commands can be chained for complex workflows:
