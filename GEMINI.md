@@ -60,46 +60,6 @@ This project uses the `@stillrivercode/information-dense-keywords` package for s
 
 **Core Reference**: See [docs/AI.md](docs/AI.md) for shared AI assistant instructions and usage patterns.
 
-### Dictionary Commands by Category
-
-#### Core Commands
-- `create [item]` - Create new components, files, or features
-- `delete [item]` - Remove components, files, or features
-- `fix [issue]` - Resolve bugs, errors, or problems
-- `select [criteria]` - Choose or filter items based on criteria
-
-#### Development Commands
-- `analyze this [component]` - Analyze code structure, patterns, and issues
-- `debug this [issue]` - Debug problems and identify root causes
-- `optimize this [code]` - Improve performance and efficiency
-
-#### Documentation Commands
-- `document this [code]` - Generate documentation for code
-- `explain this [concept]` - Provide explanations and clarifications
-- `research this [topic]` - Research technologies and best practices
-
-#### Workflow Commands
-- `plan this [implementation]` - Create implementation plans
-- `spec this [feature]` - Generate technical specifications
-- `roadmap [project]` - Create project roadmaps
-
-#### Quality Assurance Commands
-- `test this [code]` - Generate tests and test scenarios
-- `review this [code]` - Perform code reviews
-
-#### Git Commands
-- `commit [changes]` - Create commits with proper messages
-- `pr [changes]` - Create pull requests
-- `gh [action]` - GitHub operations
-- `comment [message]` - Add comments to issues/PRs
-- `push [changes]` - Push changes to remote repository
-
-### Command Chaining
-Commands can be chained for complex workflows:
-```
-analyze this authentication system then spec this improved version then plan this implementation
-```
-
 ## Usage Examples
 
 ### Common IDK Commands
