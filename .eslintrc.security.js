@@ -5,6 +5,7 @@ module.exports = {
   env: {
     node: true,
     es2021: true,
+    jest: true,
   },
   parserOptions: {
     ecmaVersion: 12,
@@ -18,5 +19,7 @@ module.exports = {
     'dist/',
     'build/',
     '*.min.js',
+    'tests/',
+    'coverage/',
   ],
 };

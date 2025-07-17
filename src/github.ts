@@ -2,6 +2,15 @@ import * as github from '@actions/github';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 
+interface GitHubReview {
+  id: number;
+  user: {
+    login: string;
+  } | null;
+  body: string;
+  state: string;
+}
+
 export async function getChangedFiles(
   octokit: Octokit,
   owner: string,
@@ -25,7 +34,7 @@ export async function getReviews(
   owner: string,
   repo: string,
   prNumber: number
-): Promise<any[]> {
+): Promise<GitHubReview[]> {
   const { data: reviews } = await octokit.rest.pulls.listReviews({
     owner,
     repo,
