@@ -7,12 +7,15 @@ export async function getChangedFiles(
   owner: string,
   repo: string,
   prNumber: number
-): Promise<string[]> {
+): Promise<{ filename: string; patch: string }[]> {
   const { data: files } = await octokit.rest.pulls.listFiles({
     owner,
     repo,
     pull_number: prNumber,
   });
 
-  return files.map((file) => file.filename);
+  return files.map((file) => ({
+    filename: file.filename,
+    patch: file.patch || '',
+  }));
 }

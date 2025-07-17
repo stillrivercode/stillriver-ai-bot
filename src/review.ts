@@ -1,19 +1,44 @@
 import * as core from '@actions/core';
 import { callOpenRouter } from './openrouter';
+import { minimatch } from 'minimatch';
 
 export async function getReview(
   openrouterApiKey: string,
-  changedFiles: string[]
+  changedFiles: { filename: string; patch: string }[],
+  model: string,
+  maxTokens: number,
+  temperature: number,
+  timeout: number,
+  excludePatterns: string[],
+  prTitle: string,
+  prBody: string
 ): Promise<string | null> {
-  const model = core.getInput('model');
-  const maxTokens = parseInt(core.getInput('max_tokens'), 10);
-  const temperature = parseFloat(core.getInput('temperature'));
-  const timeout = parseInt(core.getInput('request_timeout_seconds'), 10) * 1000;
+  const filteredFiles = changedFiles.filter(
+    (file) => !excludePatterns.some((pattern) => minimatch(file.filename, pattern))
+  );
+
+  if (filteredFiles.length === 0) {
+    core.info('No files to review after applying exclusion patterns.');
+    return null;
+  }
+
+  const diffs = filteredFiles.map(file => `File: ${file.filename}\n\`\`\`diff\n${file.patch}\n\`\`\``).join('\n\n');
 
   const prompt = `
-    Please review the following code changes.
-    Changed files:
-    ${changedFiles.join('\n')}
+    Please review the following pull request.
+
+    **PR Title:** ${prTitle}
+    **PR Description:**
+    ${prBody}
+
+    **Changed Files:**
+    ${diffs}
+
+    **Review Guidelines:**
+    - Point out potential bugs.
+    - Suggest improvements to the code.
+    - Identify any security vulnerabilities.
+    - Comment on code style and best practices.
   `;
 
   return callOpenRouter(openrouterApiKey, model, prompt, maxTokens, temperature, timeout);

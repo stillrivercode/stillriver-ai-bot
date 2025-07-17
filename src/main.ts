@@ -27,7 +27,23 @@ async function run(): Promise<void> {
       return;
     }
 
-    const review = await getReview(openrouter_api_key, changedFiles);
+    const model = core.getInput('model');
+    const maxTokens = parseInt(core.getInput('max_tokens'), 10);
+    const temperature = parseFloat(core.getInput('temperature'));
+    const timeout = parseInt(core.getInput('request_timeout_seconds'), 10) * 1000;
+    const excludePatterns = core.getInput('exclude_patterns').split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+    const review = await getReview(
+      openrouter_api_key,
+      changedFiles,
+      model,
+      maxTokens,
+      temperature,
+      timeout,
+      excludePatterns,
+      pr.title,
+      pr.body || ''
+    );
 
     if (review) {
       await octokit.rest.pulls.createReview({
