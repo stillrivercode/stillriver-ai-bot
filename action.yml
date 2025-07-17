@@ -1,0 +1,51 @@
+name: 'AI PR Review Action'
+description: 'An AI-powered GitHub Action for automated pull request reviews using OpenRouter.'
+author: 'StillRiver AI'
+
+branding:
+  icon: 'git-pull-request'
+  color: 'purple'
+
+inputs:
+  github_token:
+    description: 'GitHub token for API requests.'
+    required: true
+  openrouter_api_key:
+    description: 'OpenRouter API key.'
+    required: true
+  model:
+    description: 'The AI model to use for the review (e.g., anthropic/claude-3.5-sonnet).'
+    required: false
+    default: 'anthropic/claude-3.5-sonnet'
+  review_type:
+    description: 'The type of review to perform (e.g., full, security, performance).'
+    required: false
+    default: 'full'
+  max_tokens:
+    description: 'The maximum number of tokens for the AI model to generate.'
+    required: false
+    default: '4096'
+  temperature:
+    description: 'The temperature for the AI model.'
+    required: false
+    default: '0.7'
+  request_timeout_seconds:
+    description: 'Timeout for the OpenRouter API request in seconds.'
+    required: false
+    default: '300'
+  custom_review_rules:
+    description: 'Path to a custom ruleset file for the review.'
+    required: false
+  exclude_patterns:
+    description: 'A comma-separated list of glob patterns for files to exclude from the review.'
+    required: false
+
+outputs:
+  review_comment:
+    description: 'The content of the AI-generated review comment.'
+  review_status:
+    description: 'The status of the review (e.g., success, failure).'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
