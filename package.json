@@ -45,11 +45,10 @@
   "devDependencies": {
     "eslint": "^8.0.0",
     "eslint-plugin-security": "^1.7.1",
-    "jest": "^29.0.0",
     "yaml-lint": "^1.7.0"
   },
   "scripts": {
-    "test": "jest --passWithNoTests",
+    "test": "bash tests/test_shell_scripts.sh",
     "lint": "echo 'No JavaScript files to lint in this project'",
     "lint:yaml": "yamllint -d relaxed *.yml *.yaml .github/workflows/*.yml .github/workflows/*.yaml || echo 'No YAML files to lint'",
     "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'",
