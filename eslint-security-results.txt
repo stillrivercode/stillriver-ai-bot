@@ -1,0 +1,13 @@
+
+> @stillrivercode/stillriver-ai-bot@1.0.0 lint:security
+> eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'
+
+
+/home/runner/work/stillriver-ai-bot/stillriver-ai-bot/tests/main.test.ts
+  1:1  error  'describe' is not defined  no-undef
+  2:3  error  'it' is not defined        no-undef
+  3:5  error  'expect' is not defined    no-undef
+
+✖ 3 problems (3 errors, 0 warnings)
+
+No security issues found
