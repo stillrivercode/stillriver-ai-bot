@@ -1,19 +1,5 @@
-# Dependencies
-/node_modules
 
-# Environment variables
-.env
-
-# Local settings
-.claude/
-
-# macOS
-.DS_Store
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Generated symlinks
-/bin
+# Node
+node_modules
+npm-debug.log
+dist
