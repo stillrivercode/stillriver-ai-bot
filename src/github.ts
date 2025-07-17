@@ -20,17 +20,17 @@ export async function getChangedFiles(
   }));
 }
 
-export async function getReviewComments(
+export async function getReviews(
   octokit: Octokit,
   owner: string,
   repo: string,
   prNumber: number
-): Promise<string[]> {
-  const { data: comments } = await octokit.rest.pulls.listReviewComments({
+): Promise<any[]> {
+  const { data: reviews } = await octokit.rest.pulls.listReviews({
     owner,
     repo,
     pull_number: prNumber,
   });
 
-  return comments.map((comment) => comment.body);
+  return reviews;
 }

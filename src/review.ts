@@ -11,7 +11,9 @@ export async function getReview(
   timeout: number,
   excludePatterns: string[],
   prTitle: string,
-  prBody: string
+  prBody: string,
+  reviewType: string,
+  retries: number
 ): Promise<string | null> {
   const filteredFiles = changedFiles.filter(
     (file) => !excludePatterns.some((pattern) => new Minimatch(pattern).match(file.filename))
@@ -22,9 +24,12 @@ export async function getReview(
     return null;
   }
 
-  const diffs = filteredFiles.map(file => `File: ${file.filename}\n\`\`\`diff\n${file.patch}\n\`\`\``).join('\n\n');
+  const diffs = filteredFiles.map(file => `File: ${file.filename}
+\`\`\`diff
+${file.patch}
+\`\`\``).join('\n\n');
 
-  const prompt = `
+  let prompt = `
     Please review the following pull request.
 
     **PR Title:** ${prTitle}
@@ -35,11 +40,24 @@ export async function getReview(
     ${diffs}
 
     **Review Guidelines:**
-    - Point out potential bugs.
-    - Suggest improvements to the code.
-    - Identify any security vulnerabilities.
-    - Comment on code style and best practices.
   `;
 
-  return callOpenRouter(openrouterApiKey, model, prompt, maxTokens, temperature, timeout);
+  switch (reviewType) {
+    case 'security':
+      prompt += '\n- Focus on identifying any security vulnerabilities.';
+      break;
+    case 'performance':
+      prompt += '\n- Focus on identifying any performance issues.';
+      break;
+    default:
+      prompt += `
+        - Point out potential bugs.
+        - Suggest improvements to the code.
+        - Identify any security vulnerabilities.
+        - Comment on code style and best practices.
+      `;
+  }
+
+  const openrouterUrl = core.getInput('openrouter_url');
+  return callOpenRouter(openrouterApiKey, model, prompt, maxTokens, temperature, timeout, retries, openrouterUrl);
 }

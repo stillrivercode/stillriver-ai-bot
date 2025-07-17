@@ -1,14 +1,14 @@
 import { getOctokit } from '@actions/github';
-import { getChangedFiles, getReviewComments } from '../src/github';
+import { getChangedFiles, getReviews } from '../src/github';
 
 const mockListFiles = jest.fn();
-const mockListReviewComments = jest.fn();
+const mockListReviews = jest.fn();
 
 const octokit = {
   rest: {
     pulls: {
       listFiles: mockListFiles,
-      listReviewComments: mockListReviewComments,
+      listReviews: mockListReviews,
     },
   },
 } as unknown as ReturnType<typeof getOctokit>;
@@ -41,19 +41,20 @@ describe('GitHub API functions', () => {
     });
   });
 
-  describe('getReviewComments', () => {
-    it('should return a list of review comment bodies', async () => {
-      mockListReviewComments.mockResolvedValue({
-        data: [
-          { body: 'comment1' },
-          { body: 'comment2' },
-        ],
+  describe('getReviews', () => {
+    it('should return a list of reviews', async () => {
+      const mockReviews = [
+        { id: 1, user: { login: 'user1' }, body: 'review1', state: 'APPROVED' },
+        { id: 2, user: { login: 'user2' }, body: 'review2', state: 'COMMENTED' },
+      ];
+      mockListReviews.mockResolvedValue({
+        data: mockReviews,
       });
 
-      const comments = await getReviewComments(octokit, 'owner', 'repo', 123);
+      const reviews = await getReviews(octokit, 'owner', 'repo', 123);
 
-      expect(comments).toEqual(['comment1', 'comment2']);
-      expect(mockListReviewComments).toHaveBeenCalledWith({
+      expect(reviews).toEqual(mockReviews);
+      expect(mockListReviews).toHaveBeenCalledWith({
         owner: 'owner',
         repo: 'repo',
         pull_number: 123,

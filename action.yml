@@ -13,6 +13,10 @@ inputs:
   openrouter_api_key:
     description: 'OpenRouter API key.'
     required: true
+  openrouter_url:
+    description: 'The URL of the OpenRouter API.'
+    required: false
+    default: 'https://openrouter.ai/api/v1/chat/completions'
   model:
     description: 'The AI model to use for the review (e.g., anthropic/claude-3.5-sonnet).'
     required: false
@@ -33,6 +37,10 @@ inputs:
     description: 'Timeout for the OpenRouter API request in seconds.'
     required: false
     default: '300'
+  retries:
+    description: 'The number of times to retry the OpenRouter API request.'
+    required: false
+    default: '3'
   custom_review_rules:
     description: 'Path to a custom ruleset file for the review.'
     required: false
