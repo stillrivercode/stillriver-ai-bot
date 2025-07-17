@@ -1,3 +1,4 @@
+---
 name: AI PR Review
 
 # Centralized timeout configuration
@@ -10,7 +11,7 @@ env:
 # - When someone comments "/review" on a PR
 # Note: Removed 'synchronize' trigger to avoid running on every commit
 # Note: Bot comments are explicitly filtered to prevent infinite loops
-on:
+"on":
   pull_request:
     types: [opened, labeled]
 

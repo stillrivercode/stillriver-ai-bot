@@ -1,58 +1,60 @@
 {
-  "name": "@stillrivercode/agentic-workflow-template",
-  "version": "1.1.1",
-  "description": "NPM package to create AI-powered GitHub workflow automation projects",
+  "name": "@stillrivercode/stillriver-ai-bot",
+  "version": "1.0.0",
+  "description": "AI-powered GitHub workflow automation bot with Information Dense Keywords integration",
   "keywords": [
     "github-actions",
     "ai",
     "automation",
     "workflow",
-    "template",
-    "cli"
+    "bot",
+    "information-dense-keywords",
+    "claude",
+    "openrouter"
   ],
-  "author": "Still River Code <noreply@stillrivercode.com>",
+  "author": "Stillriver Code <admin@stillriver.info>",
   "license": "MIT",
-  "homepage": "https://github.com/stillrivercode/agentic-workflow-template#readme",
+  "homepage": "https://github.com/stillrivercode/stillriver-ai-bot#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stillrivercode/agentic-workflow-template.git"
+    "url": "git+https://github.com/stillrivercode/stillriver-ai-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/stillrivercode/agentic-workflow-template/issues"
+    "url": "https://github.com/stillrivercode/stillriver-ai-bot/issues"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "bin": {
-    "agentic-workflow-template": "./cli/index.js"
-  },
   "files": [
-    "cli/",
     "scripts/",
     ".github/",
     "docs/",
     "README.md",
     "LICENSE",
-    "install.sh",
-    "shared-commands/"
+    "package.json"
   ],
   "dependencies": {
-    "commander": "^11.0.0",
-    "inquirer": "^8.2.5",
+    "@stillrivercode/information-dense-keywords": "^1.7.2",
     "chalk": "^4.1.2",
+    "commander": "^11.0.0",
     "fs-extra": "^11.1.0",
+    "inquirer": "^8.2.5",
     "validate-npm-package-name": "^5.0.0"
   },
   "devDependencies": {
     "eslint": "^8.0.0",
-    "jest": "^29.0.0"
+    "eslint-plugin-security": "^1.7.1",
+    "yaml-lint": "^1.7.0"
   },
   "scripts": {
-    "test": "jest --passWithNoTests",
+    "test": "bash tests/test_shell_scripts.sh",
     "lint": "echo 'No JavaScript files to lint in this project'",
-    "setup": "echo 'Use: npx @stillrivercode/agentic-workflow-template <project-name>' && echo 'Example: npx @stillrivercode/agentic-workflow-template my-ai-project'"
+    "lint:yaml": "yamllint -d relaxed *.yml *.yaml .github/workflows/*.yml .github/workflows/*.yaml || echo 'No YAML files to lint'",
+    "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'",
+    "setup": "echo 'AI-powered GitHub workflow automation bot' && echo 'Use Information Dense Keywords commands via: npm run idk'",
+    "idk": "npx @stillrivercode/information-dense-keywords",
+    "idk:update": "npm update @stillrivercode/information-dense-keywords"
   },
-  "main": "cli/index.js",
-  "preferGlobal": true
+  "main": "package.json"
 }

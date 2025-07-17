@@ -9,13 +9,26 @@ set -e
 
 echo "🏷️  Setting up GitHub issue labels..."
 
+# Disable exit on error for label creation (individual failures shouldn't stop the script)
+set +e
+
 # Function to create or update a label
 create_or_update_label() {
   local name="$1"
   local color="$2"
   local description="$3"
 
-  gh label create "$name" --color "$color" --description "$description" --force
+  if gh label create "$name" --color "$color" --description "$description" --force 2>/dev/null; then
+    echo "✓ Created/updated label: $name"
+  else
+    echo "⚠ Failed to create label: $name (may already exist with different settings)"
+    # Try to update existing label instead
+    if gh label edit "$name" --color "$color" --description "$description" 2>/dev/null; then
+      echo "✓ Updated existing label: $name"
+    else
+      echo "⚠ Could not update label: $name"
+    fi
+  fi
 }
 
 # AI Workflow Labels (essential for workflow functionality)
@@ -86,6 +99,9 @@ create_or_update_label "needs-docs" "BFD4F2" "Documentation updates needed"
 # Release Labels
 echo "Creating release labels..."
 create_or_update_label "release" "00FF00" "Ready for release - triggers npm publishing when PR merged to main"
+
+# Re-enable exit on error for final commands
+set -e
 
 echo ""
 echo "✅ Label setup complete!"

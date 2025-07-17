@@ -121,7 +121,7 @@ process_ai_response() {
     log_info "AI response saved to $response_file (${#response} characters)"
 
     # Check if the response contains code or instructions to implement
-    if echo "$response" | grep -qE "(```|implement|create|modify|update)"; then
+    if echo "$response" | grep -qE '(```|implement|create|modify|update)'; then
         log_info "AI response contains implementation instructions"
         return 0
     else
@@ -164,10 +164,16 @@ main() {
 
     # Step 1: Comprehensive prerequisite validation
     log_info "🔍 STEP 1: COMPREHENSIVE PREREQUISITE VALIDATION"
-    if ! validate_all_prerequisites "ai_operations" "github_operations"; then
+    local validation_result=0
+    validate_all_prerequisites "ai_operations" "github_operations" || validation_result=$?
+
+    # In test environments, warnings are acceptable, only critical failures should abort
+    if [[ "$validation_result" -eq 1 ]]; then
         log_error "❌ Prerequisite validation failed - aborting execution"
         log_error "   Please resolve all critical errors before proceeding"
         exit 1
+    elif [[ "$validation_result" -eq 2 ]]; then
+        log_info "⚠️  Prerequisite validation completed with warnings - continuing"
     fi
 
     # Step 2: Get issue details
@@ -245,7 +251,7 @@ main() {
     log_info "═══════════════════════════════════════════════════"
     log_info "🏁 EXECUTION SUMMARY"
     log_info "═══════════════════════════════════════════════════"
-    log_info "Issue: #$issue_number - $title"
+    # log_info "Issue: #$issue_number - $title"
     log_info "Exit code: $overall_exit_code"
 
     if [[ $overall_exit_code -eq 0 ]]; then

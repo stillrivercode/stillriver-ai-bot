@@ -14,11 +14,9 @@ npm test                    # Run Jest tests
 npm run lint               # ESLint code analysis
 npm run setup              # Show usage instructions
 
-# Installation and setup
-./install.sh               # Main installation script with interactive prompts
-./install.sh --dev         # Development installation
-./install.sh --auto-yes --anthropic-key YOUR_KEY  # Non-interactive setup
-./scripts/setup-labels.sh  # Create GitHub repository labels
+# Information Dense Keywords (IDK) System
+npm run idk                 # Access IDK command dictionary
+npm run idk:update          # Update IDK package
 
 # Script execution
 ./scripts/execute-ai-task.sh <issue_number>        # Process AI task from GitHub issue
@@ -26,6 +24,47 @@ npm run setup              # Show usage instructions
 ./scripts/create-pr.sh                             # Create pull request
 ./scripts/safe-commit.sh                           # Commit changes safely
 ./scripts/run-security-scan.sh                     # Run security analysis
+./scripts/setup-labels.sh  # Create GitHub repository labels
+```
+
+## Information Dense Keywords (IDK) Commands
+
+This project uses the `@stillrivercode/information-dense-keywords` package for standardized AI command vocabulary. The full command dictionary is available at `/docs/information-dense-keywords.md`.
+
+### Core Commands
+- `create [item]` - Create new components, files, or features
+- `delete [item]` - Remove components, files, or features
+- `fix [issue]` - Resolve bugs, errors, or problems
+- `select [criteria]` - Choose or filter items based on criteria
+
+### Development Commands
+- `analyze this [component]` - Analyze code structure, patterns, and issues
+- `debug this [issue]` - Debug problems and identify root causes
+- `optimize this [code]` - Improve performance and efficiency
+
+### Documentation Commands
+- `document this [code]` - Generate documentation for code
+- `explain this [concept]` - Provide explanations and clarifications
+- `research this [topic]` - Research technologies and best practices
+
+### Workflow Commands
+- `plan this [implementation]` - Create implementation plans
+- `spec this [feature]` - Generate technical specifications
+- `roadmap [project]` - Create project roadmaps
+
+### Quality Assurance Commands
+- `test this [code]` - Generate tests and test scenarios
+- `review this [code]` - Perform code reviews
+
+### Git Commands
+- `commit [changes]` - Create commits with proper messages
+- `pr [changes]` - Create pull requests
+- `gh [action]` - GitHub operations
+
+### Command Chaining
+Commands can be chained for complex workflows:
+```
+analyze this authentication system then spec this improved version then plan this implementation
 ```
 
 ## Architecture Overview
@@ -35,7 +74,7 @@ npm run setup              # Show usage instructions
 1. **CLI Tool** (`cli/index.js`) - Creates new AI workflow projects from templates
 2. **GitHub Actions Workflows** (`.github/workflows/`) - 11 automated workflows handling:
    - AI task processing (`ai-task.yml`)
-   - Security fixes (`ai-fix-security.yml`) 
+   - Security fixes (`ai-fix-security.yml`)
    - Lint fixes (`ai-fix-lint.yml`)
    - Test fixes (`ai-fix-tests.yml`)
    - Code review automation (`ai-pr-review.yml`)
@@ -47,7 +86,7 @@ npm run setup              # Show usage instructions
    - Cost monitoring and security scanning
    - Git operations and GitHub API interactions
 
-4. **Shared Commands** (`shared-commands/`) - Reusable utilities for issue analysis, spec generation, and GitHub integration
+4. **Information Dense Keywords** (`@stillrivercode/information-dense-keywords`) - Standardized AI command vocabulary for consistent task execution
 
 ### Key Integration Points
 
@@ -60,7 +99,7 @@ npm run setup              # Show usage instructions
 
 The system responds to GitHub issues with specific labels:
 - `ai-task` - General AI development tasks
-- `ai-bug-fix` - AI-assisted bug fixes  
+- `ai-bug-fix` - AI-assisted bug fixes
 - `ai-refactor` - Code refactoring requests
 - `ai-fix-lint`, `ai-fix-security`, `ai-fix-tests` - Automated fixes
 

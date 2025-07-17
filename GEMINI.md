@@ -32,7 +32,7 @@ The system is designed to respond to GitHub issues with specific labels (e.g., `
 *   `.github/workflows/`: Contains the core GitHub Actions workflows that orchestrate the AI tasks.
 *   `scripts/`: A collection of shell scripts and Python scripts that form the backbone of the AI automation. This includes scripts for interacting with AI models, managing git branches, creating PRs, and running security scans.
 *   `docs/`: Detailed documentation covering architecture, workflows, security, and usage.
-*   `shared-commands/`: Reusable commands that can be shared across different parts of the system.
+*   `docs/dictionary/`: Information Dense Keywords command dictionary for standardized AI interactions.
 *   `package.json`: Defines the project as an NPM package, allowing it to be distributed and used as a CLI tool to bootstrap new projects.
 
 ## Setup and Configuration

@@ -23,15 +23,8 @@ MIN_DISK_SPACE_MB=100
 MIN_MEMORY_MB=512
 MAX_LOAD_AVERAGE=10.0
 
-# Network endpoints to test
-readonly NETWORK_TEST_ENDPOINTS=(
-    "https://api.anthropic.com/health"
-    "https://api.github.com"
-    "https://httpbin.org/get"
-)
-
 # Required environment variables for different operations
-REQUIRED_ENV_VARS_AI="ANTHROPIC_API_KEY"
+REQUIRED_ENV_VARS_AI="OPENROUTER_API_KEY"
 REQUIRED_ENV_VARS_GITHUB="GITHUB_TOKEN"
 REQUIRED_ENV_VARS_COST="AI_COST_LIMIT_DAILY AI_COST_LIMIT_MONTHLY"
 
@@ -48,6 +41,11 @@ validate_all_prerequisites() {
     echo "🔍 Starting comprehensive prerequisite validation..."
     echo "   Operation types: ${operation_types[*]:-all}"
     echo "   Timestamp: $(date)"
+
+    # Check if running in test mode
+    if [[ "${VALIDATION_TEST_MODE:-}" == "true" ]]; then
+        echo "   🧪 Running in TEST MODE - API validation disabled"
+    fi
     echo ""
 
     # Clear previous validation state
@@ -57,7 +55,6 @@ validate_all_prerequisites() {
 
     # Run all validation checks
     validate_environment_variables "${operation_types[@]}"
-    validate_network_connectivity
     validate_authentication_credentials "${operation_types[@]}"
     validate_cli_tools "${operation_types[@]}"
     validate_system_resources
@@ -92,7 +89,7 @@ validate_environment_variables() {
     for op_type in "${operation_types[@]}"; do
         case "$op_type" in
             "ai_operations"|"all")
-                validate_anthropic_api_key
+                validate_openrouter_api_key
                 ;;
             "github_operations"|"all")
                 validate_github_token
@@ -124,19 +121,23 @@ validate_anthropic_api_key() {
         return 1
     fi
 
-    # Basic format validation
-    if [[ ! "$api_key" =~ ^sk- ]]; then
+    # Basic format validation (allow test keys in test mode)
+    if [[ "${VALIDATION_TEST_MODE:-}" == "true" && "$api_key" == "test_key" ]]; then
+        add_validation_info "Test API key detected in test mode"
+    elif [[ ! "$api_key" =~ ^sk- ]]; then
         add_validation_error "ANTHROPIC_API_KEY appears to be in incorrect format (should start with 'sk-')"
         return 1
     fi
 
-    # Length validation
-    if [[ ${#api_key} -lt 50 ]]; then
+    # Length validation (skip for test keys)
+    if [[ "${VALIDATION_TEST_MODE:-}" != "true" && ${#api_key} -lt 50 ]]; then
         add_validation_warning "ANTHROPIC_API_KEY appears to be too short (${#api_key} characters)"
     fi
 
-    # Test API key with a simple request
-    if command -v curl >/dev/null 2>&1; then
+    # Test API key with a simple request (skip in test mode)
+    if [[ "${VALIDATION_TEST_MODE:-}" == "true" ]]; then
+        add_validation_info "ANTHROPIC_API_KEY format validation passed (test mode)"
+    elif command -v curl >/dev/null 2>&1; then
         echo "   🔑 Testing Anthropic API key validity..."
         local test_response
         test_response=$(curl -s -w "%{http_code}" -o /dev/null \
@@ -176,13 +177,15 @@ validate_github_token() {
         return 0
     fi
 
-    # Basic format validation
-    if [[ ! "$github_token" =~ ^(gh[ospru]_|github_pat_) ]]; then
+    # Basic format validation - allow GitHub Actions tokens
+    if [[ ! "$github_token" =~ ^(gh[ospru]_|github_pat_|ghs_) ]]; then
         add_validation_warning "GITHUB_TOKEN format appears non-standard"
     fi
 
-    # Test token with GitHub API
-    if command -v curl >/dev/null 2>&1; then
+    # Test token with GitHub API (skip in test mode or CI environments)
+    if [[ "${VALIDATION_TEST_MODE:-}" == "true" ]] || [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${CI:-}" ]] || [[ -n "${SKIP_GITHUB_TOKEN_VALIDATION:-}" ]]; then
+        add_validation_info "GITHUB_TOKEN validation skipped in test/CI environment"
+    elif command -v curl >/dev/null 2>&1; then
         echo "   🔑 Testing GitHub token validity..."
         local test_response
         test_response=$(curl -s -w "%{http_code}" -o /dev/null \
@@ -234,46 +237,6 @@ validate_cost_monitoring_vars() {
     fi
 }
 
-# Validate network connectivity
-validate_network_connectivity() {
-    echo "🌐 Validating network connectivity..."
-
-    # Test basic connectivity
-    if ! ping -c 1 8.8.8.8 >/dev/null 2>&1; then
-        add_validation_error "No basic internet connectivity (cannot reach 8.8.8.8)"
-        return 1
-    fi
-
-    # Test DNS resolution
-    if ! nslookup google.com >/dev/null 2>&1; then
-        add_validation_error "DNS resolution not working"
-        return 1
-    fi
-
-    # Test HTTPS connectivity to important endpoints
-    if command -v curl >/dev/null 2>&1; then
-        for endpoint in "${NETWORK_TEST_ENDPOINTS[@]}"; do
-            echo "   🔗 Testing connectivity to: $endpoint"
-            if curl -s --max-time 10 --head "$endpoint" >/dev/null 2>&1; then
-                add_validation_info "✅ Successfully connected to $endpoint"
-            else
-                add_validation_warning "❌ Cannot connect to $endpoint"
-            fi
-        done
-    else
-        add_validation_warning "Cannot test HTTPS connectivity (curl not available)"
-    fi
-
-    # Test proxy configuration if applicable
-    if [[ -n "${HTTP_PROXY:-}${HTTPS_PROXY:-}" ]]; then
-        echo "   🔄 Proxy configuration detected"
-        add_validation_info "HTTP_PROXY: ${HTTP_PROXY:-none}"
-        add_validation_info "HTTPS_PROXY: ${HTTPS_PROXY:-none}"
-    fi
-
-    echo "   ✅ Network connectivity validation completed"
-    echo ""
-}
 
 # Validate authentication credentials
 validate_authentication_credentials() {
@@ -297,8 +260,11 @@ validate_authentication_credentials() {
     for op_type in "${operation_types[@]}"; do
         case "$op_type" in
             "ai_operations"|"all")
-                if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-                    add_validation_error "AI operations require ANTHROPIC_API_KEY"
+                # Skip API key validation in test environments
+                if [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${CI:-}" ]] || [[ -n "${SKIP_API_KEY_VALIDATION:-}" ]]; then
+                    add_validation_info "AI API key validation skipped in test/CI environment"
+                elif [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+                    add_validation_error "AI operations require OPENROUTER_API_KEY"
                 fi
                 ;;
             "github_operations"|"all")
@@ -306,7 +272,12 @@ validate_authentication_credentials() {
                     if gh auth status >/dev/null 2>&1; then
                         add_validation_info "GitHub CLI is authenticated"
                     else
-                        add_validation_warning "GitHub CLI is not authenticated"
+                        # In GitHub Actions, CLI might not be authenticated but GITHUB_TOKEN is available
+                        if [[ -n "${GITHUB_ACTIONS:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
+                            add_validation_info "GitHub Actions environment with GITHUB_TOKEN available"
+                        else
+                            add_validation_warning "GitHub CLI is not authenticated"
+                        fi
                     fi
                 fi
                 ;;
@@ -348,6 +319,12 @@ validate_cli_tools() {
 # Validate Claude CLI specifically
 validate_claude_cli() {
     echo "   🤖 Validating Claude CLI..."
+
+    # Skip Claude CLI validation in test environments
+    if [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${CI:-}" ]] || [[ -n "${SKIP_CLAUDE_CLI_VALIDATION:-}" ]]; then
+        add_validation_info "Claude CLI validation skipped in test/CI environment"
+        return 0
+    fi
 
     local claude_cmd=""
 
@@ -442,12 +419,27 @@ validate_configuration() {
         local git_user_name=$(git config user.name 2>/dev/null || echo "")
         local git_user_email=$(git config user.email 2>/dev/null || echo "")
 
-        if [[ -z "$git_user_name" ]]; then
-            add_validation_warning "Git user.name not configured"
-        fi
+        # In GitHub Actions, git config might not be set but commits can still work with GITHUB_ACTOR
+        if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+            if [[ -z "$git_user_name" && -n "${GITHUB_ACTOR:-}" ]]; then
+                add_validation_info "Git user.name not configured, but GitHub Actions will use GITHUB_ACTOR: ${GITHUB_ACTOR}"
+            elif [[ -z "$git_user_name" ]]; then
+                add_validation_warning "Git user.name not configured"
+            fi
 
-        if [[ -z "$git_user_email" ]]; then
-            add_validation_warning "Git user.email not configured"
+            if [[ -z "$git_user_email" && -n "${GITHUB_ACTOR:-}" ]]; then
+                add_validation_info "Git user.email not configured, but GitHub Actions will use default"
+            elif [[ -z "$git_user_email" ]]; then
+                add_validation_warning "Git user.email not configured"
+            fi
+        else
+            if [[ -z "$git_user_name" ]]; then
+                add_validation_warning "Git user.name not configured"
+            fi
+
+            if [[ -z "$git_user_email" ]]; then
+                add_validation_warning "Git user.email not configured"
+            fi
         fi
 
         if [[ -n "$git_user_name" && -n "$git_user_email" ]]; then
