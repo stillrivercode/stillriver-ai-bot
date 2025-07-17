@@ -31,6 +31,16 @@ jobs:
 
 See `action.yml` for a full list of inputs.
 
+### `github_token` Permissions
+
+This action requires the `pull-requests: write` permission to post review comments. You can grant this permission in your workflow file:
+
+```yaml
+permissions:
+  pull-requests: write
+```
+
 ## Contributing
+
 
 Contributions are welcome! Please see `CONTRIBUTING.md` for more information.

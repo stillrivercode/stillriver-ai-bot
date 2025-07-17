@@ -34,12 +34,22 @@ export async function callOpenRouter(
     return null;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      core.error(`Axios error calling OpenRouter: ${error.message}`);
+      let errorMessage = `Axios error calling OpenRouter: ${error.message}.`;
       if (error.response) {
-        core.error(`Response data: ${JSON.stringify(error.response.data)}`);
+        errorMessage += ` Status: ${error.response.status}.`;
+        errorMessage += ` Data: ${JSON.stringify(error.response.data)}.`;
+        if (error.response.status === 401) {
+          core.setFailed('OpenRouter API request failed with status 401: Unauthorized. Please check your `openrouter_api_key`.');
+        } else if (error.response.status === 429) {
+          core.setFailed('OpenRouter API request failed with status 429: Too Many Requests. Please check your rate limits.');
+        } else {
+          core.setFailed(errorMessage);
+        }
+      } else {
+        core.setFailed(errorMessage);
       }
     } else {
-      core.error(`Unknown error calling OpenRouter: ${error}`);
+      core.setFailed(`An unknown error occurred while calling OpenRouter: ${error}`);
     }
     return null;
   }

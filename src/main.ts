@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { getChangedFiles } from './github';
+import { getChangedFiles, getReviewComments } from './github';
 import { getReview } from './review';
 
 async function run(): Promise<void> {
@@ -18,6 +18,12 @@ async function run(): Promise<void> {
     }
 
     const pr = context.payload.pull_request;
+
+    const existingComments = await getReviewComments(octokit, context.repo.owner, context.repo.repo, pr.number);
+    if (existingComments.some(comment => comment.includes('AI Review'))) {
+      core.info('An AI review already exists for this pull request. Skipping.');
+      return;
+    }
 
     const changedFiles = await getChangedFiles(octokit, context.repo.owner, context.repo.repo, pr.number);
     core.info(`Found ${changedFiles.length} changed files.`);
@@ -50,7 +56,7 @@ async function run(): Promise<void> {
         owner: context.repo.owner,
         repo: context.repo.repo,
         pull_number: pr.number,
-        body: review,
+        body: `## 🤖 AI Review\n\n${review}`,
         event: 'COMMENT',
       });
       core.setOutput('review_status', 'success');
@@ -64,5 +70,6 @@ async function run(): Promise<void> {
     }
   }
 }
+
 
 run();

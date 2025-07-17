@@ -19,3 +19,18 @@ export async function getChangedFiles(
     patch: file.patch || '',
   }));
 }
+
+export async function getReviewComments(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  prNumber: number
+): Promise<string[]> {
+  const { data: comments } = await octokit.rest.pulls.listReviewComments({
+    owner,
+    repo,
+    pull_number: prNumber,
+  });
+
+  return comments.map((comment) => comment.body);
+}
