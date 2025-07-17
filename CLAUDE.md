@@ -31,6 +31,8 @@ npm run idk:update          # Update IDK package
 
 This project uses the `@stillrivercode/information-dense-keywords` package for standardized AI command vocabulary. The full command dictionary is available at `/docs/information-dense-keywords.md`.
 
+**Core Reference**: See [docs/AI.md](docs/AI.md) for shared AI assistant instructions and usage patterns.
+
 ### Core Commands
 - `create [item]` - Create new components, files, or features
 - `delete [item]` - Remove components, files, or features
