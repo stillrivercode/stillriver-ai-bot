@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { callOpenRouter } from './openrouter';
-import { minimatch } from 'minimatch';
+import { Minimatch } from 'minimatch';
 
 export async function getReview(
   openrouterApiKey: string,
@@ -14,7 +14,7 @@ export async function getReview(
   prBody: string
 ): Promise<string | null> {
   const filteredFiles = changedFiles.filter(
-    (file) => !excludePatterns.some((pattern) => minimatch(file.filename, pattern))
+    (file) => !excludePatterns.some((pattern) => new Minimatch(pattern).match(file.filename))
   );
 
   if (filteredFiles.length === 0) {
