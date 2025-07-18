@@ -13,18 +13,29 @@ import {
 
 function validateInputs(): void {
   const maxTokens = parseInt(core.getInput('max_tokens'), 10);
-  if (isNaN(maxTokens) || maxTokens <= 0) {
-    throw new RangeError('`max_tokens` must be a positive integer');
+  if (isNaN(maxTokens) || maxTokens <= 0 || maxTokens > 32768) {
+    throw new RangeError(
+      '`max_tokens` must be a positive integer between 1 and 32768'
+    );
   }
 
   const temperature = parseFloat(core.getInput('temperature'));
-  if (isNaN(temperature) || temperature < 0 || temperature > 1) {
-    throw new RangeError('`temperature` must be a number between 0 and 1');
+  if (isNaN(temperature) || temperature < 0 || temperature > 2) {
+    throw new RangeError('`temperature` must be a number between 0 and 2');
   }
 
   const retries = parseInt(core.getInput('retries'), 10);
-  if (isNaN(retries) || retries < 0) {
-    throw new RangeError('`retries` must be a non-negative integer');
+  if (isNaN(retries) || retries < 0 || retries > 5) {
+    throw new RangeError(
+      '`retries` must be a non-negative integer between 0 and 5'
+    );
+  }
+
+  const timeout = parseInt(core.getInput('request_timeout_seconds'), 10);
+  if (!isNaN(timeout) && (timeout < 1 || timeout > 600)) {
+    throw new RangeError(
+      '`request_timeout_seconds` must be between 1 and 600 seconds'
+    );
   }
 }
 

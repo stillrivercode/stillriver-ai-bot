@@ -115,6 +115,15 @@ async function loadCustomReviewRules(
     return null;
   }
 
+  // Check if file exists before attempting to read it
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  if (!fs.existsSync(customRulesPath)) {
+    throw new InvalidCustomRulesError(
+      `Custom review rules file does not exist: ${customRulesPath}`,
+      customRulesPath
+    );
+  }
+
   try {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     const rulesContent = await fs.promises.readFile(customRulesPath, 'utf8');

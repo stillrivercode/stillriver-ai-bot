@@ -55,25 +55,25 @@ inputs:
     default: 'full'
     # type: string (enum: full, security, performance, comprehensive)
   max_tokens:
-    description: 'The maximum number of tokens for the AI model to generate. Range: 1-32768 (model-dependent).'
+    description: 'The maximum number of tokens for the AI model to generate. Must be between 1 and 32768 (model-dependent).'
     required: false
     default: '4096'
-    # type: number (positive integer)
+    # type: number (positive integer, 1-32768)
   temperature:
-    description: 'The temperature for the AI model. Controls randomness: 0.0 = deterministic, 2.0 = very random.'
+    description: 'The temperature for the AI model. Controls randomness: 0.0 = deterministic, 2.0 = very random. Must be between 0.0 and 2.0.'
     required: false
     default: '0.7'
     # type: number (float between 0.0 and 2.0)
   request_timeout_seconds:
-    description: 'Timeout for the OpenRouter API request in seconds. Range: 1-600.'
+    description: 'Timeout for the OpenRouter API request in seconds. Must be between 1 and 600.'
     required: false
     default: '120'
-    # type: number (positive integer)
+    # type: number (positive integer, 1-600)
   retries:
-    description: 'The number of times to retry the OpenRouter API request on failure. Range: 0-5.'
+    description: 'The number of times to retry the OpenRouter API request on failure. Must be between 0 and 5.'
     required: false
     default: '3'
-    # type: number (positive integer, 0-5 recommended)
+    # type: number (non-negative integer, 0-5)
   custom_review_rules:
     description: 'Path to a JSON file containing custom review rules. Currently only JSON format is supported.'
     required: false

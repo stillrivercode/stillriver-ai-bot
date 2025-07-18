@@ -167,28 +167,26 @@ describe('getReview', () => {
   });
 
   describe('Custom Review Rules Integration', () => {
-    it('should handle nonexistent custom rules file gracefully', async () => {
+    it('should throw InvalidCustomRulesError for nonexistent custom rules file', async () => {
       const changedFiles = [{ filename: 'src/main.ts', patch: '...' }];
 
-      // This will fail to read the file but should continue with base config
-      await getReview(
-        'api-key',
-        changedFiles,
-        'model',
-        1024,
-        0.7,
-        30000,
-        [],
-        'Test PR',
-        'PR Body',
-        'security',
-        3,
-        'nonexistent-file.json'
-      );
-
-      expect(callOpenRouterMock).toHaveBeenCalled();
-      const prompt = callOpenRouterMock.mock.calls[0][2];
-      expect(prompt).toContain('Security Review'); // Should fallback to base config
+      // This should now throw an InvalidCustomRulesError
+      await expect(
+        getReview(
+          'api-key',
+          changedFiles,
+          'model',
+          1024,
+          0.7,
+          30000,
+          [],
+          'Test PR',
+          'PR Body',
+          'security',
+          3,
+          'nonexistent-file.json'
+        )
+      ).rejects.toThrow('Custom review rules file does not exist');
     });
 
     it('should work with existing custom rules example file', async () => {

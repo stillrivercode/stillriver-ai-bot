@@ -5,12 +5,14 @@ const mockInfo = jest.fn();
 const mockGetInput = jest.fn();
 const mockSetFailed = jest.fn();
 const mockSetOutput = jest.fn();
+const mockWarning = jest.fn();
 
 jest.mock('@actions/core', () => ({
   info: mockInfo,
   getInput: mockGetInput,
   setFailed: mockSetFailed,
   setOutput: mockSetOutput,
+  warning: mockWarning,
 }));
 
 // Mock GitHub
@@ -334,7 +336,7 @@ describe('AI PR Review Action', () => {
 
     // Assert
     expect(mockSetFailed).toHaveBeenCalledWith(
-      'Input validation error: `max_tokens` must be a positive integer. Please check your numeric inputs.'
+      'Input validation error: `max_tokens` must be a positive integer between 1 and 32768. Please check your numeric inputs.'
     );
     expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
   });
@@ -371,3 +373,6 @@ describe('AI PR Review Action', () => {
     expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
   });
 });
+
+// Note: OpenRouter and Review module unit tests are covered in separate test files
+// (tests/openrouter.test.ts and tests/review.test.ts) to avoid complex mocking issues
