@@ -6,10 +6,11 @@ The Build and Tag workflow (`build-and-tag.yml`) automates the process of buildi
 
 ## Triggers
 
-### Automatic (Push to Main)
-- Triggers automatically on pushes to the `main` branch
+### Automatic (PR Merge to Main)
+- Triggers automatically when pull requests are merged to the `main` branch
 - Creates a patch version bump by default
 - Suitable for regular development releases
+- Only runs on successful merges, not PR closures without merge
 
 ### Manual (Workflow Dispatch)
 - Can be triggered manually from GitHub Actions UI
@@ -73,16 +74,20 @@ The Build and Tag workflow (`build-and-tag.yml`) automates the process of buildi
    - **Custom tag** (optional): `v2.1.0`
 4. Click **Run workflow**
 
-### Automatic Release via Push
+### Automatic Release via PR Merge
 
 ```bash
-# Make changes and commit to main
-git checkout main
+# Create feature branch and make changes
+git checkout -b feature/new-feature
 git add .
 git commit -m "feat: add new feature"
-git push origin main
+git push origin feature/new-feature
 
-# Workflow automatically triggers and creates patch release
+# Create and merge PR
+gh pr create --title "feat: add new feature"
+gh pr merge --squash
+
+# Workflow automatically triggers on merge and creates patch release
 ```
 
 ### CLI Release via GitHub CLI

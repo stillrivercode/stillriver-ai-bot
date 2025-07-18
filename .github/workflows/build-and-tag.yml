@@ -1,7 +1,8 @@
 name: Build and Tag
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
   workflow_dispatch:
@@ -27,6 +28,8 @@ permissions:
 jobs:
   build-and-tag:
     runs-on: ubuntu-latest
+    # Only run on merged PRs, not closed without merge
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     outputs:
       new-tag: ${{ steps.bump.outputs.new-tag }}
       version: ${{ steps.bump.outputs.version }}
