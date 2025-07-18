@@ -132,7 +132,7 @@ jobs:
 
       - name: Run audit-ci security check
         run: |
-          npx audit-ci --report-type=json --output-file=audit-ci-results.json || true
+          npx audit-ci --report-type=full --output-file=audit-ci-results.json || true
 
       - name: Run ESLint security scan
         run: |
