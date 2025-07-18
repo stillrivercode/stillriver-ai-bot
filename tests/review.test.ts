@@ -94,9 +94,7 @@ describe('getReview', () => {
 
     expect(callOpenRouterMock).toHaveBeenCalled();
     const prompt = callOpenRouterMock.mock.calls[0][2];
-    expect(prompt).toContain(
-      'Identify any security vulnerabilities'
-    );
+    expect(prompt).toContain('Identify any security vulnerabilities');
   });
 
   it('should include performance focus for performance review type', async () => {
@@ -206,12 +204,12 @@ describe('getReview', () => {
         'PR Body',
         'security',
         3,
-        './example-custom-rules.json'
+        './examples/custom-rules-typescript-react.json'
       );
 
       expect(callOpenRouterMock).toHaveBeenCalled();
       const prompt = callOpenRouterMock.mock.calls[0][2];
-      expect(prompt).toContain('Custom TypeScript API Review');
+      expect(prompt).toContain('TypeScript React Application Review');
     });
   });
 });

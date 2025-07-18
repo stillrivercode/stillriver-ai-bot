@@ -115,6 +115,7 @@ async function loadCustomReviewRules(
   }
 
   try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const rulesContent = await fs.promises.readFile(customRulesPath, 'utf8');
 
     // Support both JSON and YAML formats
@@ -180,6 +181,7 @@ function buildPrompt(
   customRules?: CustomReviewRules
 ): string {
   // Get base review configuration, fallback to comprehensive if type not found
+  // eslint-disable-next-line security/detect-object-injection
   let config = REVIEW_CONFIGS[reviewType] || REVIEW_CONFIGS.comprehensive;
 
   // Merge with custom rules if provided
@@ -265,7 +267,13 @@ ${file.patch}
     )
     .join('\n\n');
 
-  const prompt = buildPrompt(reviewType, prTitle, prBody, diffs, customRules ?? undefined);
+  const prompt = buildPrompt(
+    reviewType,
+    prTitle,
+    prBody,
+    diffs,
+    customRules ?? undefined
+  );
 
   const openrouterUrl = core.getInput('openrouter_url');
   return callOpenRouter(
