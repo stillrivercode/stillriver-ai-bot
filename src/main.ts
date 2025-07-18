@@ -40,6 +40,7 @@ export async function run(): Promise<void> {
     const existingReviews = await getReviews(octokit, context.repo.owner, context.repo.repo, pr.number);
     if (existingReviews.some(review => review.user?.login === 'github-actions[bot]' && review.body.includes('## 🤖 AI Review'))) {
       core.info('An AI review already exists for this pull request. Skipping.');
+      core.setOutput('review_status', 'skipped');
       return;
     }
 
@@ -48,6 +49,7 @@ export async function run(): Promise<void> {
 
     if (changedFiles.length === 0) {
       core.info('No changed files found. Skipping review.');
+      core.setOutput('review_status', 'skipped');
       return;
     }
 
@@ -83,7 +85,7 @@ export async function run(): Promise<void> {
       });
       core.setOutput('review_status', 'success');
     } else {
-      core.setOutput('review_status', 'failure');
+      core.setOutput('review_status', 'skipped');
     }
 
   } catch (error) {
@@ -91,10 +93,4 @@ export async function run(): Promise<void> {
       core.setFailed(error.message);
     }
   }
-}
-
-
-// Only run if this file is executed directly (not imported)
-if (require.main === module) {
-  run();
 }

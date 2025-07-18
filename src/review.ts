@@ -15,8 +15,11 @@ export async function getReview(
   reviewType: string,
   retries: number
 ): Promise<string | null> {
+  // Pre-process exclude patterns for better performance
+  const minimatchers = excludePatterns.map(pattern => new Minimatch(pattern));
+
   const filteredFiles = changedFiles.filter(
-    (file) => !excludePatterns.some((pattern) => new Minimatch(pattern).match(file.filename))
+    (file) => !minimatchers.some((matcher) => matcher.match(file.filename))
   );
 
   if (filteredFiles.length === 0) {

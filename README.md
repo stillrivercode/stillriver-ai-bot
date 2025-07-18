@@ -40,6 +40,28 @@ permissions:
   pull-requests: write
 ```
 
+## How It Works
+
+### AI Review Types
+
+The action supports different review types that tailor the AI's focus:
+
+- **`full`** (default): Comprehensive review covering bugs, improvements, security, and code style
+- **`security`**: Focused on identifying security vulnerabilities
+- **`performance`**: Focused on identifying performance issues
+
+### Review Deduplication
+
+The action automatically prevents duplicate reviews by checking for existing AI reviews on the pull request. If an AI review (containing "## 🤖 AI Review") already exists from the `github-actions[bot]` user, the action will skip the review and set `review_status` to `skipped`.
+
+### Review Status
+
+The action sets the `review_status` output to indicate the result:
+
+- **`success`**: Review was generated and posted successfully
+- **`skipped`**: Review was skipped (duplicate review exists, no changed files, or no files after filtering)
+- **`failure`**: An error occurred during the review process
+
 ## Contributing
 
 

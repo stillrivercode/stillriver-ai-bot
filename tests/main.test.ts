@@ -127,6 +127,7 @@ describe('AI PR Review Action', () => {
 
     // Assert
     expect(mockInfo).toHaveBeenCalledWith('An AI review already exists for this pull request. Skipping.');
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'skipped');
   });
 
   it('should skip if no changed files are found', async () => {
@@ -147,9 +148,10 @@ describe('AI PR Review Action', () => {
 
     // Assert
     expect(mockInfo).toHaveBeenCalledWith('No changed files found. Skipping review.');
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'skipped');
   });
 
-  it('should set review status to failure if review is empty', async () => {
+  it('should set review status to skipped if review is empty', async () => {
     // Arrange
     mockGetInput.mockImplementation((name: string) => {
       if (name === 'github_token') return 'fake-token';
@@ -172,7 +174,7 @@ describe('AI PR Review Action', () => {
     await run();
 
     // Assert
-    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'skipped');
   });
 
   it('should handle errors gracefully', async () => {
