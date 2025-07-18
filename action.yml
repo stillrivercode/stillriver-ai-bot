@@ -35,7 +35,17 @@ inputs:
     default: 'https://openrouter.ai/api/v1/chat/completions'
     # type: string (URL)
   model:
-    description: 'The AI model to use for the review (e.g., anthropic/claude-3.5-sonnet).'
+    description: |
+      The AI model to use for the review.
+      Common examples:
+      - anthropic/claude-3.5-sonnet (default, balanced performance)
+      - anthropic/claude-3-opus (highest quality, more expensive)
+      - anthropic/claude-3-haiku (fastest, most cost-effective)
+      - openai/gpt-4o (OpenAI's latest)
+      - openai/gpt-4o-mini (cost-effective OpenAI option)
+      - google/gemini-pro (Google's flagship model)
+
+      For the complete list of available models, see: https://openrouter.ai/models
     required: false
     default: 'anthropic/claude-3.5-sonnet'
     # type: string
