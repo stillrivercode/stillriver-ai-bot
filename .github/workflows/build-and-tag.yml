@@ -1,0 +1,201 @@
+name: Build and Tag
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      tag_name:
+        description: 'Custom tag name (optional, overrides version_type)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build-and-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      new-tag: ${{ steps.bump.outputs.new-tag }}
+      version: ${{ steps.bump.outputs.version }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test
+
+    - name: Run linting
+      run: npm run lint
+
+    - name: Run security scan
+      run: npm run lint:security
+
+    - name: Build project
+      run: npm run build
+
+    - name: Verify build output
+      run: |
+        if [ ! -f "dist/index.js" ]; then
+          echo "Build failed: dist/index.js not found"
+          exit 1
+        fi
+        echo "Build successful: dist/index.js created"
+
+    - name: Get current version
+      id: current-version
+      run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+    - name: Determine version bump
+      id: bump
+      run: |
+        current_version="${{ steps.current-version.outputs.version }}"
+
+        if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+          # Manual tag name provided
+          new_tag="${{ github.event.inputs.tag_name }}"
+          # Extract version from tag (remove 'v' prefix if present)
+          new_version=$(echo "$new_tag" | sed 's/^v//')
+        else
+          # Automatic version bump
+          version_type="${{ github.event.inputs.version_type || 'patch' }}"
+
+          # Parse current version
+          IFS='.' read -r major minor patch <<< "$current_version"
+
+          case "$version_type" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+
+          new_version="$major.$minor.$patch"
+          new_tag="v$new_version"
+        fi
+
+        echo "new-tag=$new_tag" >> $GITHUB_OUTPUT
+        echo "version=$new_version" >> $GITHUB_OUTPUT
+        echo "Current version: $current_version"
+        echo "New version: $new_version"
+        echo "New tag: $new_tag"
+
+    - name: Update package.json version
+      run: |
+        npm version ${{ steps.bump.outputs.version }} --no-git-tag-version
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json package-lock.json
+        git commit -m "chore: bump version to ${{ steps.bump.outputs.version }}"
+
+    - name: Push version update
+      run: git push origin main
+
+    - name: Create and push tag
+      run: |
+        git tag ${{ steps.bump.outputs.new-tag }}
+        git push origin ${{ steps.bump.outputs.new-tag }}
+
+    - name: Create pre-release notes
+      id: release-notes
+      run: |
+        cat > release_notes.md << 'EOF'
+        ## 🚀 Release ${{ steps.bump.outputs.new-tag }}
+
+        ### What's Changed
+        - Built from commit: ${{ github.sha }}
+        - Build date: $(date -u)
+        - Node.js version: 20
+
+        ### Artifacts
+        - `dist.zip` - Compiled JavaScript bundle ready for GitHub Actions
+
+        ### Installation
+        ```yaml
+        - uses: stillrivercode/stillriver-ai-bot@${{ steps.bump.outputs.new-tag }}
+        ```
+
+        ### Verification
+        Build verified with:
+        - ✅ Tests passed
+        - ✅ Linting passed
+        - ✅ Security scan passed
+        - ✅ Build successful
+
+        ---
+        *This release was automatically created by the Build and Tag workflow.*
+        EOF
+
+        echo "notes-file=release_notes.md" >> $GITHUB_OUTPUT
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-dist-${{ steps.bump.outputs.new-tag }}
+        path: |
+          dist/
+          package.json
+          README.md
+          LICENSE
+        retention-days: 90
+
+  verify-release:
+    needs: build-and-tag
+    runs-on: ubuntu-latest
+    if: needs.build-and-tag.outputs.new-tag
+
+    steps:
+    - name: Verify tag was created
+      run: |
+        echo "Verifying tag: ${{ needs.build-and-tag.outputs.new-tag }}"
+
+        # Wait a moment for tag to propagate
+        sleep 5
+
+        # Check if tag exists
+        if git ls-remote --tags origin | grep -q "${{ needs.build-and-tag.outputs.new-tag }}"; then
+          echo "✅ Tag ${{ needs.build-and-tag.outputs.new-tag }} successfully created"
+        else
+          echo "❌ Tag ${{ needs.build-and-tag.outputs.new-tag }} not found"
+          exit 1
+        fi
+
+    - name: Trigger release workflow
+      run: |
+        echo "🎉 Build and tag complete!"
+        echo "Tag: ${{ needs.build-and-tag.outputs.new-tag }}"
+        echo "Version: ${{ needs.build-and-tag.outputs.version }}"
+        echo "The release workflow should now be triggered automatically by the new tag."
