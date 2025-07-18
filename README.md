@@ -29,7 +29,7 @@ jobs:
 
 ## Inputs
 
-See `action.yml` for a full list of inputs.
+See `action.yml` for a full list of inputs. For details on how to use `custom_review_rules` and understanding the prompt structure, see [docs/prompt-template-structure.md](docs/prompt-template-structure.md).
 
 ### `github_token` Permissions
 
@@ -41,6 +41,10 @@ permissions:
 ```
 
 ## How It Works
+
+### Input Types Note
+
+While the input descriptions in `action.yml` use semantic types like `number` or `string` for clarity, all GitHub Actions inputs are received as strings. The action handles the necessary parsing and validation internally. For example, `max_tokens` and `temperature` are parsed from strings to numbers with appropriate validation.
 
 ### AI Review Types
 

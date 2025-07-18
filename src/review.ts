@@ -231,6 +231,28 @@ function buildPrompt(
   return sections.join('\n');
 }
 
+/**
+ * Truncates a diff if it exceeds the maximum character limit
+ * Preserves the beginning and end of the diff for context
+ */
+function truncateDiff(diff: string, maxChars: number): string {
+  if (diff.length <= maxChars) {
+    return diff;
+  }
+
+  // Reserve characters for the truncation message
+  const truncationMessage = '\n... [TRUNCATED - diff too large] ...\n';
+  const availableChars = maxChars - truncationMessage.length;
+
+  // Split available characters between start and end
+  const charsPerSide = Math.floor(availableChars / 2);
+
+  const start = diff.substring(0, charsPerSide);
+  const end = diff.substring(diff.length - charsPerSide);
+
+  return start + truncationMessage + end;
+}
+
 export async function getReview(
   openrouterApiKey: string,
   changedFiles: { filename: string; patch: string }[],
@@ -260,20 +282,47 @@ export async function getReview(
     return null;
   }
 
-  const diffs = filteredFiles
-    .map(
-      file => `File: ${file.filename}
+  // Calculate max characters per file based on total files and max tokens
+  // Reserve ~1000 tokens for the prompt template and response
+  const reservedTokens = 1000;
+  const availableTokens = Math.max(maxTokens - reservedTokens, 1000);
+  const maxCharsTotal = availableTokens * 4; // ~4 chars per token
+  const maxCharsPerFile = Math.floor(
+    maxCharsTotal / Math.max(filteredFiles.length, 1)
+  );
+
+  // Ensure a minimum of 500 chars per file for meaningful review
+  const minCharsPerFile = 500;
+  const effectiveMaxCharsPerFile = Math.max(maxCharsPerFile, minCharsPerFile);
+
+  // Process diffs with truncation
+  const processedDiffs = filteredFiles
+    .map(file => {
+      const truncatedPatch = truncateDiff(file.patch, effectiveMaxCharsPerFile);
+      return `File: ${file.filename}
 \`\`\`diff
-${file.patch}
-\`\`\``
-    )
+${truncatedPatch}
+\`\`\``;
+    })
     .join('\n\n');
+
+  // Log if any files were truncated
+  const truncatedCount = filteredFiles.filter(
+    file => file.patch.length > effectiveMaxCharsPerFile
+  ).length;
+
+  if (truncatedCount > 0) {
+    core.warning(
+      `Truncated ${truncatedCount} file(s) to fit within token limits. ` +
+        `Max ${effectiveMaxCharsPerFile} chars per file.`
+    );
+  }
 
   const prompt = buildPrompt(
     reviewType,
     prTitle,
     prBody,
-    diffs,
+    processedDiffs,
     customRules ?? undefined
   );
 

@@ -260,4 +260,103 @@ guidelines:
       }
     });
   });
+
+  describe('diff truncation', () => {
+    it('should truncate very large diffs', async () => {
+      const largeFiles = [
+        {
+          filename: 'large-file.js',
+          patch: 'x'.repeat(10000), // 10k character diff
+        },
+      ];
+
+      await getReview(
+        'test-api-key',
+        largeFiles,
+        'test-model',
+        2000, // max tokens
+        0.5,
+        30000,
+        [],
+        'Test PR',
+        'Test Description',
+        'comprehensive',
+        3
+      );
+
+      // Should warn about truncation
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Truncated 1 file(s) to fit within token limits'
+        )
+      );
+
+      // Check that the diff was truncated in the prompt
+      const prompt = callOpenRouterMock.mock.calls[0][2];
+      expect(prompt).toContain('[TRUNCATED - diff too large]');
+    });
+
+    it('should handle multiple large files by truncating appropriately', async () => {
+      const largeFiles = Array(5)
+        .fill(null)
+        .map((_, i) => ({
+          filename: `file-${i}.js`,
+          patch: 'x'.repeat(5000), // 5k chars each
+        }));
+
+      await getReview(
+        'test-api-key',
+        largeFiles,
+        'test-model',
+        3000, // max tokens
+        0.5,
+        30000,
+        [],
+        'Test PR',
+        'Test Description',
+        'comprehensive',
+        3
+      );
+
+      // Should warn about truncation
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Truncated 5 file(s) to fit within token limits'
+        )
+      );
+    });
+
+    it('should not truncate small diffs', async () => {
+      const smallFiles = [
+        {
+          filename: 'small-file.js',
+          patch: 'small change',
+        },
+      ];
+
+      await getReview(
+        'test-api-key',
+        smallFiles,
+        'test-model',
+        2000,
+        0.5,
+        30000,
+        [],
+        'Test PR',
+        'Test Description',
+        'comprehensive',
+        3
+      );
+
+      // Should not warn about truncation
+      expect(core.warning).not.toHaveBeenCalledWith(
+        expect.stringContaining('Truncated')
+      );
+
+      // Check that the diff was not truncated
+      const prompt = callOpenRouterMock.mock.calls[0][2];
+      expect(prompt).not.toContain('[TRUNCATED');
+      expect(prompt).toContain('small change');
+    });
+  });
 });

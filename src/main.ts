@@ -125,7 +125,7 @@ export async function run(): Promise<void> {
   } catch (error) {
     core.setOutput('review_status', 'failure');
 
-    // Handle specific error types with tailored messages
+    // 1. Handle custom error types
     if (error instanceof OpenRouterAuthError) {
       core.setFailed(error.message);
     } else if (error instanceof OpenRouterRateLimitError) {
@@ -147,7 +147,9 @@ export async function run(): Promise<void> {
       );
     } else if (error instanceof ConfigurationError) {
       core.setFailed(`Configuration error: ${error.message}`);
-    } else if (error instanceof TypeError) {
+    }
+    // 2. Handle standard JavaScript error types
+    else if (error instanceof TypeError) {
       core.setFailed(
         `Configuration error: ${error.message}. Please check your action inputs.`
       );
@@ -155,8 +157,9 @@ export async function run(): Promise<void> {
       core.setFailed(
         `Input validation error: ${error.message}. Please check your numeric inputs.`
       );
-    } else if (error instanceof Error) {
-      // Check for specific error patterns
+    }
+    // 3. Handle generic Error with message pattern matching
+    else if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
 
       if (errorMessage.includes('github') || errorMessage.includes('api')) {
@@ -187,9 +190,10 @@ export async function run(): Promise<void> {
       } else {
         core.setFailed(`Unexpected error: ${error.message}`);
       }
-    } else {
-      // Handle non-Error objects (strings, numbers, objects, etc.)
-      const errorMessage = (error as Error)?.message || String(error);
+    }
+    // 4. Handle non-Error objects (strings, numbers, objects, etc.)
+    else {
+      const errorMessage = String(error);
       core.setFailed(`Unknown error occurred: ${errorMessage}`);
     }
   }
