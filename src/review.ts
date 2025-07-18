@@ -118,24 +118,27 @@ async function loadCustomReviewRules(
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     const rulesContent = await fs.promises.readFile(customRulesPath, 'utf8');
 
-    // Support both JSON and YAML formats
+    // Currently only JSON format is supported
     let customRules: CustomReviewRules;
 
-    if (customRulesPath.endsWith('.json')) {
-      customRules = JSON.parse(rulesContent);
-    } else if (
+    if (
       customRulesPath.endsWith('.yml') ||
       customRulesPath.endsWith('.yaml')
     ) {
-      // For YAML support, we'd need to add a YAML parser dependency
-      // For now, we'll just support JSON and warn about YAML
+      // YAML support would require adding js-yaml or similar dependency
       core.warning(
-        'YAML custom rules not yet supported. Please use JSON format.'
+        `YAML custom rules are not currently supported. Please convert '${customRulesPath}' to JSON format.`
       );
       return null;
-    } else {
-      // Try to parse as JSON by default
+    }
+
+    // Parse as JSON
+    try {
       customRules = JSON.parse(rulesContent);
+    } catch (parseError) {
+      throw new Error(
+        `Failed to parse custom rules file as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`
+      );
     }
 
     // Validate the structure

@@ -1,7 +1,10 @@
 import { getReview } from '../src/review';
 import * as openrouter from '../src/openrouter';
+import * as fs from 'fs';
+import * as core from '@actions/core';
 
 jest.mock('../src/openrouter');
+jest.mock('@actions/core');
 
 describe('getReview', () => {
   const callOpenRouterMock = openrouter.callOpenRouter as jest.Mock;
@@ -210,6 +213,49 @@ describe('getReview', () => {
       expect(callOpenRouterMock).toHaveBeenCalled();
       const prompt = callOpenRouterMock.mock.calls[0][2];
       expect(prompt).toContain('TypeScript React Application Review');
+    });
+
+    it('should warn and fallback when YAML file is provided', async () => {
+      const changedFiles = [{ filename: 'src/main.ts', patch: '...' }];
+
+      // Create a test YAML file
+      const yamlPath = './test-rules.yaml';
+      fs.writeFileSync(
+        yamlPath,
+        `title: Test YAML Rules
+description: This should not be parsed
+guidelines:
+  - Test guideline`
+      );
+
+      try {
+        await getReview(
+          'api-key',
+          changedFiles,
+          'model',
+          1024,
+          0.7,
+          30000,
+          [],
+          'Test PR',
+          'PR Body',
+          'security',
+          3,
+          yamlPath
+        );
+
+        expect(callOpenRouterMock).toHaveBeenCalled();
+        const prompt = callOpenRouterMock.mock.calls[0][2];
+        expect(prompt).toContain('Security Review'); // Should use base config
+        expect(core.warning).toHaveBeenCalledWith(
+          expect.stringContaining('YAML custom rules are not currently supported')
+        );
+      } finally {
+        // Clean up
+        if (fs.existsSync(yamlPath)) {
+          fs.unlinkSync(yamlPath);
+        }
+      }
     });
   });
 });

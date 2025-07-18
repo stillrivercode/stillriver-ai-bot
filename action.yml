@@ -42,7 +42,7 @@ inputs:
     required: false
     default: '3'
   custom_review_rules:
-    description: 'Path to a custom ruleset file for the review.'
+    description: 'Path to a JSON file containing custom review rules. Currently only JSON format is supported.'
     required: false
   exclude_patterns:
     description: 'A comma-separated list of glob patterns for files to exclude from the review.'

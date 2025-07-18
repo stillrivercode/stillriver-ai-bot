@@ -2,6 +2,8 @@
 
 This directory contains example custom review rules files that can be used with the AI PR Review Action to customize the review process for specific project needs.
 
+> **Note:** Currently, only JSON format is supported for custom review rules. YAML support may be added in future versions.
+
 ## Available Examples
 
 ### 🔒 Security-Focused Review
