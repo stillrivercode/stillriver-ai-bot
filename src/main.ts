@@ -2,6 +2,14 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { getChangedFiles, getReviews } from './github';
 import { getReview } from './review';
+import {
+  OpenRouterAuthError,
+  OpenRouterRateLimitError,
+  OpenRouterApiError,
+  OpenRouterTimeoutError,
+  ConfigurationError,
+  InvalidCustomRulesError,
+} from './errors';
 
 function validateInputs(): void {
   const maxTokens = parseInt(core.getInput('max_tokens'), 10);
@@ -115,17 +123,38 @@ export async function run(): Promise<void> {
       core.setOutput('review_status', 'skipped');
     }
   } catch (error) {
+    core.setOutput('review_status', 'failure');
+
     // Handle specific error types with tailored messages
-    if (error instanceof TypeError) {
+    if (error instanceof OpenRouterAuthError) {
+      core.setFailed(error.message);
+    } else if (error instanceof OpenRouterRateLimitError) {
+      core.setFailed(
+        `OpenRouter API rate limit exceeded. Please try again later${
+          error.retryAfter ? ` (retry after ${error.retryAfter}s)` : ''
+        }.`
+      );
+    } else if (error instanceof OpenRouterTimeoutError) {
+      core.setFailed(
+        `OpenRouter API request timed out after ${error.timeout}ms. Consider increasing request_timeout_seconds.`
+      );
+    } else if (error instanceof OpenRouterApiError) {
+      const details = error.statusCode ? ` (HTTP ${error.statusCode})` : '';
+      core.setFailed(`OpenRouter API error: ${error.message}${details}`);
+    } else if (error instanceof InvalidCustomRulesError) {
+      core.setFailed(
+        `Invalid custom review rules in ${error.filePath}: ${error.message}`
+      );
+    } else if (error instanceof ConfigurationError) {
+      core.setFailed(`Configuration error: ${error.message}`);
+    } else if (error instanceof TypeError) {
       core.setFailed(
         `Configuration error: ${error.message}. Please check your action inputs.`
       );
-      core.setOutput('review_status', 'failure');
     } else if (error instanceof RangeError) {
       core.setFailed(
         `Input validation error: ${error.message}. Please check your numeric inputs.`
       );
-      core.setOutput('review_status', 'failure');
     } else if (error instanceof Error) {
       // Check for specific error patterns
       const errorMessage = error.message.toLowerCase();
@@ -158,12 +187,10 @@ export async function run(): Promise<void> {
       } else {
         core.setFailed(`Unexpected error: ${error.message}`);
       }
-      core.setOutput('review_status', 'failure');
     } else {
       // Handle non-Error objects (strings, numbers, objects, etc.)
       const errorMessage = (error as Error)?.message || String(error);
       core.setFailed(`Unknown error occurred: ${errorMessage}`);
-      core.setOutput('review_status', 'failure');
     }
   }
 }

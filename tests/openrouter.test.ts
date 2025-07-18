@@ -1,21 +1,27 @@
 import axios from 'axios';
 import { callOpenRouter } from '../src/openrouter';
 import * as core from '@actions/core';
+import {
+  OpenRouterAuthError,
+  OpenRouterRateLimitError,
+  OpenRouterApiError,
+  OpenRouterTimeoutError,
+} from '../src/errors';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-// Suppress console.error and core.setFailed during tests
-let coreSetFailed: jest.SpyInstance;
+// Mock console warnings during tests
+let coreWarning: jest.SpyInstance;
 
 describe('callOpenRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    coreSetFailed = jest.spyOn(core, 'setFailed').mockImplementation();
+    coreWarning = jest.spyOn(core, 'warning').mockImplementation();
   });
 
   afterEach(() => {
-    coreSetFailed.mockRestore();
+    coreWarning.mockRestore();
   });
 
   it('should return the content from the first choice', async () => {
@@ -36,45 +42,44 @@ describe('callOpenRouter', () => {
       'https://openrouter.ai/api/v1/chat/completions'
     );
     expect(content).toBe('AI review content');
-    expect(coreSetFailed).not.toHaveBeenCalled();
   });
 
-  it('should return null if there are no choices', async () => {
+  it('should throw OpenRouterApiError if there are no choices', async () => {
     mockedAxios.post.mockResolvedValue({
       data: { choices: [] },
+      status: 200,
     });
 
-    const content = await callOpenRouter(
-      'api-key',
-      'model',
-      'prompt',
-      1024,
-      0.7,
-      30000,
-      3,
-      'https://openrouter.ai/api/v1/chat/completions'
-    );
-    expect(content).toBeNull();
-    expect(coreSetFailed).not.toHaveBeenCalled();
+    await expect(
+      callOpenRouter(
+        'api-key',
+        'model',
+        'prompt',
+        1024,
+        0.7,
+        30000,
+        3,
+        'https://openrouter.ai/api/v1/chat/completions'
+      )
+    ).rejects.toThrow(OpenRouterApiError);
   });
 
-  it('should handle axios errors', async () => {
-    mockedAxios.post.mockRejectedValue(new Error('Network error'));
+  it('should throw error for non-axios errors', async () => {
+    const error = new Error('Network error');
+    mockedAxios.post.mockRejectedValue(error);
 
-    const content = await callOpenRouter(
-      'api-key',
-      'model',
-      'prompt',
-      1024,
-      0.7,
-      30000,
-      3,
-      'https://openrouter.ai/api/v1/chat/completions'
-    );
-    expect(content).toBeNull();
-    expect(coreSetFailed).toHaveBeenCalledWith(
-      'An unknown error occurred while calling OpenRouter: Error: Network error'
-    );
+    await expect(
+      callOpenRouter(
+        'api-key',
+        'model',
+        'prompt',
+        1024,
+        0.7,
+        30000,
+        3,
+        'https://openrouter.ai/api/v1/chat/completions'
+      )
+    ).rejects.toThrow(error);
   });
 
   it('should retry on 429 errors', async () => {
@@ -100,34 +105,99 @@ describe('callOpenRouter', () => {
       'https://openrouter.ai/api/v1/chat/completions'
     );
     expect(content).toBe('Success after retry');
-    expect(mockedAxios.post).toHaveBeenCalledTimes(2);
+    expect(coreWarning).toHaveBeenCalledWith(
+      expect.stringContaining('Retrying in')
+    );
   });
 
-  it('should not retry on 401 errors', async () => {
+  it('should throw OpenRouterAuthError on 401 errors', async () => {
     const error = new Error('Unauthorized');
-    (error as any).response = {
-      status: 401,
-      data: { error: 'Invalid API key' },
-    };
+    (error as any).response = { status: 401, data: {} };
     (error as any).isAxiosError = true;
 
-    mockedAxios.post.mockRejectedValueOnce(error);
+    mockedAxios.post.mockRejectedValue(error);
     jest.mocked(axios.isAxiosError).mockReturnValue(true);
 
-    const content = await callOpenRouter(
-      'api-key',
-      'model',
-      'prompt',
-      1024,
-      0.7,
-      30000,
-      3,
-      'https://openrouter.ai/api/v1/chat/completions'
-    );
-    expect(content).toBeNull();
+    await expect(
+      callOpenRouter(
+        'api-key',
+        'model',
+        'prompt',
+        1024,
+        0.7,
+        30000,
+        3,
+        'https://openrouter.ai/api/v1/chat/completions'
+      )
+    ).rejects.toThrow(OpenRouterAuthError);
+  });
+
+  it('should throw OpenRouterTimeoutError on timeout', async () => {
+    const error = new Error('Timeout');
+    (error as any).code = 'ECONNABORTED';
+    (error as any).isAxiosError = true;
+
+    mockedAxios.post.mockRejectedValue(error);
+    jest.mocked(axios.isAxiosError).mockReturnValue(true);
+
+    await expect(
+      callOpenRouter(
+        'api-key',
+        'model',
+        'prompt',
+        1024,
+        0.7,
+        30000,
+        3,
+        'https://openrouter.ai/api/v1/chat/completions'
+      )
+    ).rejects.toThrow(OpenRouterTimeoutError);
+  });
+
+  it('should throw OpenRouterRateLimitError after exhausting retries on 429', async () => {
+    const error = new Error('Too Many Requests');
+    (error as any).response = { status: 429, data: {} };
+    (error as any).isAxiosError = true;
+
+    mockedAxios.post.mockRejectedValue(error);
+    jest.mocked(axios.isAxiosError).mockReturnValue(true);
+
+    await expect(
+      callOpenRouter(
+        'api-key',
+        'model',
+        'prompt',
+        1024,
+        0.7,
+        1000, // Short timeout for test
+        2, // Only 2 retries for test
+        'https://openrouter.ai/api/v1/chat/completions'
+      )
+    ).rejects.toThrow(OpenRouterRateLimitError);
+  });
+
+  it('should not retry on 400 errors', async () => {
+    const error = new Error('Bad Request');
+    (error as any).response = { status: 400, data: { error: 'Invalid input' } };
+    (error as any).isAxiosError = true;
+
+    mockedAxios.post.mockRejectedValue(error);
+    jest.mocked(axios.isAxiosError).mockReturnValue(true);
+
+    await expect(
+      callOpenRouter(
+        'api-key',
+        'model',
+        'prompt',
+        1024,
+        0.7,
+        30000,
+        3,
+        'https://openrouter.ai/api/v1/chat/completions'
+      )
+    ).rejects.toThrow(OpenRouterApiError);
+
+    // Should only be called once (no retries)
     expect(mockedAxios.post).toHaveBeenCalledTimes(1);
-    expect(coreSetFailed).toHaveBeenCalledWith(
-      'OpenRouter API request failed with status 401: Unauthorized. Please check your `openrouter_api_key`.'
-    );
   });
 });

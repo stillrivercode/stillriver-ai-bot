@@ -1,5 +1,11 @@
 import axios from 'axios';
 import * as core from '@actions/core';
+import {
+  OpenRouterAuthError,
+  OpenRouterRateLimitError,
+  OpenRouterApiError,
+  OpenRouterTimeoutError,
+} from './errors';
 
 export async function callOpenRouter(
   apiKey: string,
@@ -10,7 +16,7 @@ export async function callOpenRouter(
   timeout: number,
   retries = 3,
   openrouterUrl: string
-): Promise<string | null> {
+): Promise<string> {
   let lastError: Error | null = null;
 
   for (let i = 0; i < retries; i++) {
@@ -36,7 +42,11 @@ export async function callOpenRouter(
         return response.data.choices[0].message.content;
       }
 
-      return null;
+      throw new OpenRouterApiError(
+        'OpenRouter API returned no choices in response',
+        response.status,
+        response.data
+      );
     } catch (error) {
       lastError = error as Error;
       if (axios.isAxiosError(error) && error.response) {
@@ -58,27 +68,43 @@ export async function callOpenRouter(
     }
   }
 
+  // If we get here, we've exhausted all retries
   if (lastError) {
     if (axios.isAxiosError(lastError)) {
-      let errorMessage = `Axios error calling OpenRouter: ${lastError.message}.`;
-      if (lastError.response) {
-        errorMessage += ` Status: ${lastError.response.status}.`;
-        errorMessage += ` Data: ${JSON.stringify(lastError.response.data)}.`;
-        if (lastError.response.status === 401) {
-          core.setFailed(
-            'OpenRouter API request failed with status 401: Unauthorized. Please check your `openrouter_api_key`.'
-          );
-        } else {
-          core.setFailed(errorMessage);
-        }
-      } else {
-        core.setFailed(errorMessage);
+      if (lastError.code === 'ECONNABORTED' || lastError.code === 'ETIMEDOUT') {
+        throw new OpenRouterTimeoutError(timeout);
       }
-    } else {
-      core.setFailed(
-        `An unknown error occurred while calling OpenRouter: ${lastError}`
+
+      if (lastError.response) {
+        const { status, data } = lastError.response;
+
+        if (status === 401) {
+          throw new OpenRouterAuthError(
+            'OpenRouter API request failed with status 401: Unauthorized. Please check your openrouter_api_key.'
+          );
+        }
+
+        if (status === 429) {
+          throw new OpenRouterRateLimitError();
+        }
+
+        throw new OpenRouterApiError(
+          `OpenRouter API request failed: ${lastError.message}`,
+          status,
+          data
+        );
+      }
+
+      // Network error or other axios error without response
+      throw new OpenRouterApiError(
+        `Network error calling OpenRouter: ${lastError.message}`
       );
     }
+
+    // Re-throw non-axios errors as-is
+    throw lastError;
   }
-  return null;
+
+  // This should never happen, but TypeScript needs it
+  throw new OpenRouterApiError('OpenRouter request failed after all retries');
 }

@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import { callOpenRouter } from './openrouter';
 import { Minimatch } from 'minimatch';
 import * as fs from 'fs';
+import { InvalidCustomRulesError } from './errors';
 
 interface ReviewConfig {
   title: string;
@@ -136,8 +137,9 @@ async function loadCustomReviewRules(
     try {
       customRules = JSON.parse(rulesContent);
     } catch (parseError) {
-      throw new Error(
-        `Failed to parse custom rules file as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`
+      throw new InvalidCustomRulesError(
+        `Failed to parse custom rules file as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+        customRulesPath
       );
     }
 
