@@ -1,0 +1,104 @@
+# Example GitHub Actions workflow using custom review rules
+name: AI PR Review with Custom Rules
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Security-focused review for security-related changes
+  security-review:
+    if: contains(github.event.pull_request.labels.*.name, 'security') || contains(github.event.pull_request.title, 'security') || contains(github.event.pull_request.title, 'auth')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Security-Focused AI Review
+        uses: stillrivercode/stillriver-ai-bot@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: 'anthropic/claude-3.5-sonnet'
+          review_type: 'security'
+          custom_review_rules: 'examples/custom-rules-security-focus.json'
+          exclude_patterns: 'dist/*,*.min.js,package-lock.json'
+
+  # Performance review for performance-related changes
+  performance-review:
+    if: contains(github.event.pull_request.labels.*.name, 'performance') || contains(github.event.pull_request.title, 'perf') || contains(github.event.pull_request.title, 'optimization')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Performance-Focused AI Review
+        uses: stillrivercode/stillriver-ai-bot@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: 'anthropic/claude-3.5-sonnet'
+          review_type: 'performance'
+          custom_review_rules: 'examples/custom-rules-performance-optimization.json'
+          max_tokens: '6000'
+          temperature: '0.3'
+
+  # React/TypeScript review for frontend changes
+  frontend-review:
+    if: contains(github.event.pull_request.changed_files, 'src/') && (contains(github.event.pull_request.changed_files, '.tsx') || contains(github.event.pull_request.changed_files, '.jsx'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: React TypeScript AI Review
+        uses: stillrivercode/stillriver-ai-bot@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: 'anthropic/claude-3.5-sonnet'
+          review_type: 'comprehensive'
+          custom_review_rules: 'examples/custom-rules-typescript-react.json'
+          exclude_patterns: '*.test.tsx,*.stories.tsx,dist/*'
+
+  # API review for backend changes
+  backend-review:
+    if: contains(github.event.pull_request.changed_files, 'api/') || contains(github.event.pull_request.changed_files, 'server/') || contains(github.event.pull_request.changed_files, 'backend/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Node.js API AI Review
+        uses: stillrivercode/stillriver-ai-bot@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: 'anthropic/claude-3.5-sonnet'
+          review_type: 'comprehensive'
+          custom_review_rules: 'examples/custom-rules-node-api.json'
+          exclude_patterns: 'node_modules/*,logs/*,*.log'
+
+  # General code quality review for all other changes
+  general-review:
+    if: |
+      !contains(github.event.pull_request.labels.*.name, 'security') &&
+      !contains(github.event.pull_request.labels.*.name, 'performance') &&
+      !contains(github.event.pull_request.title, 'security') &&
+      !contains(github.event.pull_request.title, 'perf')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Code Quality AI Review
+        uses: stillrivercode/stillriver-ai-bot@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: 'anthropic/claude-3.5-sonnet'
+          review_type: 'comprehensive'
+          custom_review_rules: 'examples/custom-rules-code-quality.json'
+          max_tokens: '4096'
+          temperature: '0.5'
+          exclude_patterns: 'dist/*,build/*,*.min.js,package-lock.json,yarn.lock'

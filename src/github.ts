@@ -23,7 +23,7 @@ export async function getChangedFiles(
     pull_number: prNumber,
   });
 
-  return files.map((file) => ({
+  return files.map(file => ({
     filename: file.filename,
     patch: file.patch || '',
   }));

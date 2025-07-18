@@ -8,7 +8,7 @@ export async function callOpenRouter(
   maxTokens: number,
   temperature: number,
   timeout: number,
-  retries: number = 3,
+  retries = 3,
   openrouterUrl: string
 ): Promise<string | null> {
   let lastError: Error | null = null;
@@ -43,7 +43,9 @@ export async function callOpenRouter(
         const { status } = error.response;
         if (status === 429 || status >= 500) {
           const delay = Math.pow(2, i) * 1000; // Exponential backoff
-          core.warning(`OpenRouter API request failed with status ${status}. Retrying in ${delay}ms...`);
+          core.warning(
+            `OpenRouter API request failed with status ${status}. Retrying in ${delay}ms...`
+          );
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
           // Don't retry for other client-side errors (e.g., 400, 401)
@@ -63,7 +65,9 @@ export async function callOpenRouter(
         errorMessage += ` Status: ${lastError.response.status}.`;
         errorMessage += ` Data: ${JSON.stringify(lastError.response.data)}.`;
         if (lastError.response.status === 401) {
-          core.setFailed('OpenRouter API request failed with status 401: Unauthorized. Please check your `openrouter_api_key`.');
+          core.setFailed(
+            'OpenRouter API request failed with status 401: Unauthorized. Please check your `openrouter_api_key`.'
+          );
         } else {
           core.setFailed(errorMessage);
         }
@@ -71,7 +75,9 @@ export async function callOpenRouter(
         core.setFailed(errorMessage);
       }
     } else {
-      core.setFailed(`An unknown error occurred while calling OpenRouter: ${lastError}`);
+      core.setFailed(
+        `An unknown error occurred while calling OpenRouter: ${lastError}`
+      );
     }
   }
   return null;

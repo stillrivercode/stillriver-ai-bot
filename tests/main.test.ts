@@ -1,5 +1,3 @@
-
-
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
@@ -68,20 +66,42 @@ describe('AI PR Review Action', () => {
   it('should run successfully and create a review comment', async () => {
     // Arrange
     mockGetInput.mockImplementation((name: string) => {
-      if (name === 'github_token') return 'fake-token';
-      if (name === 'openrouter_api_key') return 'fake-key';
-      if (name === 'model') return 'anthropic/claude-3.5-sonnet';
-      if (name === 'max_tokens') return '4096';
-      if (name === 'temperature') return '0.7';
-      if (name === 'request_timeout_seconds') return '300';
-      if (name === 'retries') return '3';
-      if (name === 'review_type') return 'full';
-      if (name === 'exclude_patterns') return '';
-      if (name === 'openrouter_url') return 'https://openrouter.ai/api/v1/chat/completions';
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'model') {
+        return 'anthropic/claude-3.5-sonnet';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'request_timeout_seconds') {
+        return '120';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
+      if (name === 'review_type') {
+        return 'full';
+      }
+      if (name === 'exclude_patterns') {
+        return '';
+      }
+      if (name === 'openrouter_url') {
+        return 'https://openrouter.ai/api/v1/chat/completions';
+      }
       return '';
     });
     mockGetReviews.mockResolvedValue([]);
-    mockGetChangedFiles.mockResolvedValue([{ filename: 'file1.ts', patch: '...' }]);
+    mockGetChangedFiles.mockResolvedValue([
+      { filename: 'file1.ts', patch: '...' },
+    ]);
     mockGetReview.mockResolvedValue('This is a test review.');
 
     // Act
@@ -108,36 +128,58 @@ describe('AI PR Review Action', () => {
   it('should skip if an AI review already exists', async () => {
     // Arrange
     mockGetInput.mockImplementation((name: string) => {
-      if (name === 'github_token') return 'fake-token';
-      if (name === 'openrouter_api_key') return 'fake-key';
-      if (name === 'max_tokens') return '4096';
-      if (name === 'temperature') return '0.7';
-      if (name === 'retries') return '3';
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
       return '';
     });
     mockGetReviews.mockResolvedValue([
       {
         user: { login: 'github-actions[bot]' },
-        body: '## 🤖 AI Review\n\nThis is a test review.'
-      }
+        body: '## 🤖 AI Review\n\nThis is a test review.',
+      },
     ]);
 
     // Act
     await run();
 
     // Assert
-    expect(mockInfo).toHaveBeenCalledWith('An AI review already exists for this pull request. Skipping.');
+    expect(mockInfo).toHaveBeenCalledWith(
+      'An AI review already exists for this pull request. Skipping.'
+    );
     expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'skipped');
   });
 
   it('should skip if no changed files are found', async () => {
     // Arrange
     mockGetInput.mockImplementation((name: string) => {
-      if (name === 'github_token') return 'fake-token';
-      if (name === 'openrouter_api_key') return 'fake-key';
-      if (name === 'max_tokens') return '4096';
-      if (name === 'temperature') return '0.7';
-      if (name === 'retries') return '3';
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
       return '';
     });
     mockGetReviews.mockResolvedValue([]);
@@ -147,27 +189,51 @@ describe('AI PR Review Action', () => {
     await run();
 
     // Assert
-    expect(mockInfo).toHaveBeenCalledWith('No changed files found. Skipping review.');
+    expect(mockInfo).toHaveBeenCalledWith(
+      'No changed files found. Skipping review.'
+    );
     expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'skipped');
   });
 
   it('should set review status to skipped if review is empty', async () => {
     // Arrange
     mockGetInput.mockImplementation((name: string) => {
-      if (name === 'github_token') return 'fake-token';
-      if (name === 'openrouter_api_key') return 'fake-key';
-      if (name === 'model') return 'anthropic/claude-3.5-sonnet';
-      if (name === 'max_tokens') return '4096';
-      if (name === 'temperature') return '0.7';
-      if (name === 'request_timeout_seconds') return '300';
-      if (name === 'retries') return '3';
-      if (name === 'review_type') return 'full';
-      if (name === 'exclude_patterns') return '';
-      if (name === 'openrouter_url') return 'https://openrouter.ai/api/v1/chat/completions';
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'model') {
+        return 'anthropic/claude-3.5-sonnet';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'request_timeout_seconds') {
+        return '120';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
+      if (name === 'review_type') {
+        return 'full';
+      }
+      if (name === 'exclude_patterns') {
+        return '';
+      }
+      if (name === 'openrouter_url') {
+        return 'https://openrouter.ai/api/v1/chat/completions';
+      }
       return '';
     });
     mockGetReviews.mockResolvedValue([]);
-    mockGetChangedFiles.mockResolvedValue([{ filename: 'file1.ts', patch: '...' }]);
+    mockGetChangedFiles.mockResolvedValue([
+      { filename: 'file1.ts', patch: '...' },
+    ]);
     mockGetReview.mockResolvedValue('');
 
     // Act
@@ -180,11 +246,21 @@ describe('AI PR Review Action', () => {
   it('should handle errors gracefully', async () => {
     // Arrange
     mockGetInput.mockImplementation((name: string) => {
-      if (name === 'github_token') return 'fake-token';
-      if (name === 'openrouter_api_key') return 'fake-key';
-      if (name === 'max_tokens') return '4096';
-      if (name === 'temperature') return '0.7';
-      if (name === 'retries') return '3';
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
       return '';
     });
     const errorMessage = 'Something went wrong';
@@ -194,6 +270,105 @@ describe('AI PR Review Action', () => {
     await run();
 
     // Assert
-    expect(mockSetFailed).toHaveBeenCalledWith(errorMessage);
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      `Unexpected error: ${errorMessage}`
+    );
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
+  });
+
+  it('should handle GitHub API errors specifically', async () => {
+    // Arrange
+    mockGetInput.mockImplementation((name: string) => {
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
+      return '';
+    });
+    const errorMessage = 'GitHub API rate limit exceeded';
+    mockGetReviews.mockRejectedValue(new Error(errorMessage));
+
+    // Act
+    await run();
+
+    // Assert
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      `GitHub API error: ${errorMessage}. Please check your GITHUB_TOKEN permissions.`
+    );
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
+  });
+
+  it('should handle input validation errors specifically', async () => {
+    // Arrange
+    mockGetInput.mockImplementation((name: string) => {
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'max_tokens') {
+        return 'invalid';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
+      return '';
+    });
+
+    // Act
+    await run();
+
+    // Assert
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      'Input validation error: `max_tokens` must be a positive integer. Please check your numeric inputs.'
+    );
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
+  });
+
+  it('should handle non-Error objects', async () => {
+    // Arrange
+    mockGetInput.mockImplementation((name: string) => {
+      if (name === 'github_token') {
+        return 'fake-token';
+      }
+      if (name === 'openrouter_api_key') {
+        return 'fake-key';
+      }
+      if (name === 'max_tokens') {
+        return '4096';
+      }
+      if (name === 'temperature') {
+        return '0.7';
+      }
+      if (name === 'retries') {
+        return '3';
+      }
+      return '';
+    });
+    mockGetReviews.mockRejectedValue('String error');
+
+    // Act
+    await run();
+
+    // Assert
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      'Unknown error occurred: String error'
+    );
+    expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'failure');
   });
 });

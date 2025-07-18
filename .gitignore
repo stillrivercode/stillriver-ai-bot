@@ -6,3 +6,11 @@ dist
 
 # Coverage reports
 coverage
+
+# Generated security and audit reports
+npm-audit-results.json
+eslint-security-results.json
+eslint-security-results.txt
+*-results.json
+*-results.txt
+security-scan-results/

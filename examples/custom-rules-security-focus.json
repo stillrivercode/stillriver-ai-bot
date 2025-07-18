@@ -1,0 +1,37 @@
+{
+  "title": "Security-First Code Review",
+  "description": "Comprehensive security review focused on identifying vulnerabilities and security best practices",
+  "guidelines": [
+    "Identify potential security vulnerabilities (OWASP Top 10)",
+    "Check for proper input validation and sanitization",
+    "Verify authentication and authorization mechanisms",
+    "Review error handling to prevent information leakage",
+    "Examine cryptographic implementations and key management",
+    "Check for SQL injection, XSS, and CSRF vulnerabilities",
+    "Validate secure coding practices and security headers",
+    "Review dependency security and known vulnerabilities"
+  ],
+  "focusAreas": [
+    "Input validation and sanitization",
+    "Authentication and session management",
+    "Authorization and access control",
+    "Cryptographic security",
+    "SQL injection prevention",
+    "Cross-site scripting (XSS) protection",
+    "Cross-site request forgery (CSRF) prevention",
+    "Secure error handling",
+    "Dependency security",
+    "Security headers and configurations"
+  ],
+  "examples": [
+    "Use parameterized queries to prevent SQL injection",
+    "Implement proper input validation with whitelist approach",
+    "Use secure random number generators for tokens",
+    "Apply proper authentication middleware on protected routes",
+    "Implement rate limiting to prevent brute force attacks",
+    "Use HTTPS-only cookies with secure and httpOnly flags",
+    "Validate and sanitize all user inputs before processing",
+    "Implement proper CORS policies for API endpoints"
+  ],
+  "additionalInstructions": "Prioritize security issues and provide specific remediation steps. Reference OWASP guidelines where applicable. Pay special attention to data flow from user inputs to database operations, file system access, and external API calls. Ensure all security controls are properly implemented and not bypassable."
+}

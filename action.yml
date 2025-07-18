@@ -36,7 +36,7 @@ inputs:
   request_timeout_seconds:
     description: 'Timeout for the OpenRouter API request in seconds.'
     required: false
-    default: '300'
+    default: '120'
   retries:
     description: 'The number of times to retry the OpenRouter API request.'
     required: false

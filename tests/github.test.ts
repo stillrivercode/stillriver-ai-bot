@@ -45,7 +45,12 @@ describe('GitHub API functions', () => {
     it('should return a list of reviews', async () => {
       const mockReviews = [
         { id: 1, user: { login: 'user1' }, body: 'review1', state: 'APPROVED' },
-        { id: 2, user: { login: 'user2' }, body: 'review2', state: 'COMMENTED' },
+        {
+          id: 2,
+          user: { login: 'user2' },
+          body: 'review2',
+          state: 'COMMENTED',
+        },
       ];
       mockListReviews.mockResolvedValue({
         data: mockReviews,

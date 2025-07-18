@@ -1,0 +1,4 @@
+{
+  "title": "Malformed JSON",
+  "description": "This file has invalid JSON syntax"
+  // Missing comma and closing brace

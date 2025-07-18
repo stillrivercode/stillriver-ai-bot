@@ -45,7 +45,7 @@ inputs:
   request_timeout_seconds:
     description: 'Timeout for the OpenRouter API request in seconds.'
     required: false
-    default: '300'
+    default: '120'
   custom_review_rules:
     description: 'Path to a custom ruleset file for the review.'
     required: false
@@ -80,8 +80,7 @@ The action will be developed using TypeScript and compiled to JavaScript. The pr
 │   ├── main.ts
 │   ├── github.ts
 │   ├── openrouter.ts
-│   ├── review.ts
-│   └── utils.ts
+│   └── review.ts
 └── tests/
     ├── main.test.ts
     └── ...
@@ -128,12 +127,6 @@ The core logic will be modularized into several TypeScript files within the `src
     -   Process the AI model's response.
     -   Format the review comment in Markdown.
 
-### `src/utils.ts`
--   **Purpose**: A collection of helper functions used across the action.
--   **Responsibilities**:
-    -   Logging functions (info, warning, error).
-    -   File content filtering and manipulation.
-    -   Any other shared utility logic.
 
 ## 5. Build and Packaging
 

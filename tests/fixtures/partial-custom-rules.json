@@ -1,0 +1,7 @@
+{
+  "title": "Partial Custom Review",
+  "guidelines": [
+    "Focus on TypeScript types",
+    "Check for async/await patterns"
+  ]
+}
