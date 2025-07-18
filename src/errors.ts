@@ -29,7 +29,7 @@ export class OpenRouterAuthError extends BaseError {
  * Error thrown when OpenRouter API rate limit is exceeded
  */
 export class OpenRouterRateLimitError extends BaseError {
-  constructor(public retryAfter?: number) {
+  constructor(public readonly retryAfter?: number) {
     super('OpenRouter API rate limit exceeded');
   }
 }
@@ -40,8 +40,8 @@ export class OpenRouterRateLimitError extends BaseError {
 export class OpenRouterApiError extends BaseError {
   constructor(
     message: string,
-    public statusCode?: number,
-    public responseData?: unknown
+    public readonly statusCode?: number,
+    public readonly responseData?: unknown
   ) {
     super(message);
   }
@@ -69,7 +69,10 @@ export class ConfigurationError extends BaseError {
  * Error thrown when custom review rules are invalid
  */
 export class InvalidCustomRulesError extends BaseError {
-  constructor(message: string, public filePath: string) {
+  constructor(
+    message: string,
+    public readonly filePath: string
+  ) {
     super(message);
   }
 }

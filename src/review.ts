@@ -122,10 +122,7 @@ async function loadCustomReviewRules(
     // Currently only JSON format is supported
     let customRules: CustomReviewRules;
 
-    if (
-      customRulesPath.endsWith('.yml') ||
-      customRulesPath.endsWith('.yaml')
-    ) {
+    if (customRulesPath.endsWith('.yml') || customRulesPath.endsWith('.yaml')) {
       // YAML support would require adding js-yaml or similar dependency
       core.warning(
         `YAML custom rules are not currently supported. Please convert '${customRulesPath}' to JSON format.`

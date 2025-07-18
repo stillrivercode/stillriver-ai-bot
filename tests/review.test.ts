@@ -248,7 +248,9 @@ guidelines:
         const prompt = callOpenRouterMock.mock.calls[0][2];
         expect(prompt).toContain('Security Review'); // Should use base config
         expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining('YAML custom rules are not currently supported')
+          expect.stringContaining(
+            'YAML custom rules are not currently supported'
+          )
         );
       } finally {
         // Clean up
