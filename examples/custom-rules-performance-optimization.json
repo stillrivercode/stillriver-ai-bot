@@ -1,0 +1,37 @@
+{
+  "title": "Performance Optimization Review",
+  "description": "Detailed performance analysis focusing on scalability, efficiency, and resource optimization",
+  "guidelines": [
+    "Analyze algorithmic complexity and identify O(n²) or worse operations",
+    "Review database query patterns and identify N+1 problems",
+    "Check for memory leaks and inefficient memory usage",
+    "Examine caching strategies and opportunities",
+    "Review asynchronous operation handling and blocking calls",
+    "Identify unnecessary computations and redundant operations",
+    "Check for inefficient data structures and access patterns",
+    "Review resource cleanup and connection management"
+  ],
+  "focusAreas": [
+    "Algorithm efficiency and time complexity",
+    "Database query optimization",
+    "Memory usage and garbage collection",
+    "Caching strategies and hit ratios",
+    "Asynchronous programming patterns",
+    "Resource pooling and connection management",
+    "Data structure selection and usage",
+    "Network request optimization",
+    "File I/O and disk operations",
+    "CPU-intensive operations"
+  ],
+  "examples": [
+    "Replace nested loops with more efficient algorithms or data structures",
+    "Implement database query optimization with proper indexing",
+    "Add connection pooling for database and external service calls",
+    "Use lazy loading for expensive operations and large datasets",
+    "Implement proper caching layers (Redis, in-memory, CDN)",
+    "Use streaming for large file processing instead of loading into memory",
+    "Optimize JSON parsing and serialization for large payloads",
+    "Implement pagination for large result sets"
+  ],
+  "additionalInstructions": "Focus on measurable performance improvements. Suggest specific metrics to track (response time, throughput, memory usage). Consider both current performance and scalability under load. Prioritize optimizations that provide the highest impact with reasonable implementation effort. Always consider the trade-offs between performance and code maintainability."
+}

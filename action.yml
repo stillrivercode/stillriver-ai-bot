@@ -1,0 +1,96 @@
+name: 'AI PR Review Action'
+description: 'An AI-powered GitHub Action for automated pull request reviews using OpenRouter.'
+author: 'StillRiver AI'
+# Example usage:
+#   - uses: stillrivercode/ai-pr-review-action@v1
+#     with:
+#       github_token: ${{ secrets.GITHUB_TOKEN }}
+#       openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+#       review_type: 'security'
+#       max_tokens: 8192
+#       temperature: 0.5
+#       custom_review_rules: './config/review-rules.json'
+
+branding:
+  icon: 'git-pull-request'
+  color: 'purple'
+
+# Input Types Guide:
+# - All inputs are provided as strings in GitHub Actions
+# - Number types should be parseable as integers or floats
+# - Boolean types are not used (use string enums instead)
+# - File paths are relative to the repository root
+inputs:
+  github_token:
+    description: 'GitHub token for API requests.'
+    required: true
+    # type: string
+  openrouter_api_key:
+    description: 'OpenRouter API key.'
+    required: true
+    # type: string
+  openrouter_url:
+    description: 'The URL of the OpenRouter API.'
+    required: false
+    default: 'https://openrouter.ai/api/v1/chat/completions'
+    # type: string (URL)
+  model:
+    description: |
+      The AI model to use for the review.
+      Common examples:
+      - anthropic/claude-3.5-sonnet (default, balanced performance)
+      - anthropic/claude-3-opus (highest quality, more expensive)
+      - anthropic/claude-3-haiku (fastest, most cost-effective)
+      - openai/gpt-4o (OpenAI's latest)
+      - openai/gpt-4o-mini (cost-effective OpenAI option)
+      - google/gemini-pro (Google's flagship model)
+
+      For the complete list of available models, see: https://openrouter.ai/models
+    required: false
+    default: 'anthropic/claude-3.5-sonnet'
+    # type: string
+  review_type:
+    description: 'The type of review to perform (e.g., full, security, performance).'
+    required: false
+    default: 'full'
+    # type: string (enum: full, security, performance, comprehensive)
+  max_tokens:
+    description: 'The maximum number of tokens for the AI model to generate. Must be between 1 and 32768 (model-dependent).'
+    required: false
+    default: '4096'
+    # type: number (positive integer, 1-32768)
+  temperature:
+    description: 'The temperature for the AI model. Controls randomness: 0.0 = deterministic, 2.0 = very random. Must be between 0.0 and 2.0.'
+    required: false
+    default: '0.7'
+    # type: number (float between 0.0 and 2.0)
+  request_timeout_seconds:
+    description: 'Timeout for the OpenRouter API request in seconds. Must be between 1 and 600.'
+    required: false
+    default: '120'
+    # type: number (positive integer, 1-600)
+  retries:
+    description: 'The number of times to retry the OpenRouter API request on failure. Must be between 0 and 5.'
+    required: false
+    default: '3'
+    # type: number (non-negative integer, 0-5)
+  custom_review_rules:
+    description: 'Path to a JSON file containing custom review rules. Currently only JSON format is supported.'
+    required: false
+    # type: string (file path)
+  exclude_patterns:
+    description: 'A comma-separated list of glob patterns for files to exclude from the review.'
+    required: false
+    # type: string (comma-separated glob patterns)
+
+outputs:
+  review_comment:
+    description: 'The content of the AI-generated review comment.'
+    # type: string (markdown formatted)
+  review_status:
+    description: 'The status of the review (e.g., success, failure).'
+    # type: string (enum: success, failure, error)
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

@@ -1,0 +1,35 @@
+{
+  "title": "TypeScript React Application Review",
+  "description": "Specialized review for TypeScript React applications focusing on type safety, component patterns, and React best practices",
+  "guidelines": [
+    "Verify proper TypeScript type definitions and avoid 'any' types",
+    "Check React component patterns and lifecycle usage",
+    "Review state management and prop passing patterns",
+    "Ensure proper error boundaries and error handling",
+    "Check for accessibility (a11y) compliance and semantic HTML",
+    "Review performance optimizations (memoization, lazy loading)",
+    "Validate test coverage for components and business logic",
+    "Check for security vulnerabilities in dependencies and code"
+  ],
+  "focusAreas": [
+    "TypeScript type safety and strict mode compliance",
+    "React component architecture and reusability",
+    "State management patterns (React hooks, Redux, Context)",
+    "Performance optimization (React.memo, useMemo, useCallback)",
+    "Accessibility and WCAG compliance",
+    "Testing strategies and coverage",
+    "Bundle size and code splitting",
+    "Security best practices for client-side applications"
+  ],
+  "examples": [
+    "Use proper TypeScript interfaces for component props and state",
+    "Implement React.memo for expensive components to prevent unnecessary re-renders",
+    "Use useCallback and useMemo hooks appropriately to optimize performance",
+    "Add proper ARIA labels and semantic HTML for accessibility",
+    "Implement error boundaries to catch and handle component errors gracefully",
+    "Use React.lazy() and Suspense for code splitting and lazy loading",
+    "Add comprehensive unit tests using React Testing Library",
+    "Implement proper form validation and error handling"
+  ],
+  "additionalInstructions": "Focus on TypeScript strictness and React performance patterns. Ensure components are properly typed, accessible, and testable. Pay attention to state management complexity and suggest simpler alternatives when appropriate. Consider mobile responsiveness and cross-browser compatibility. Validate that the application follows React and TypeScript best practices for maintainability and scalability."
+}

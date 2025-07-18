@@ -1,199 +1,72 @@
-# AI Workflow Template
+# AI PR Review Action
 
-A CLI tool to create AI-powered GitHub workflow automation projects. Get AI-assisted development up and running in your
-GitHub repository in minutes.
+An AI-powered GitHub Action for automated pull request reviews using OpenRouter.
 
-## 🚀 Quick Start
+## Getting Started
 
-### Install via npm
+To use this action, create a workflow file (e.g., `.github/workflows/ai-review.yml`) in your repository with the following content:
 
-```bash
-# Install globally
-npm install -g @stillrivercode/stillriver-ai-bot
+```yaml
+name: AI PR Review
 
-# Create a new project
-stillriver-ai-bot my-ai-project
-cd my-ai-project
+on:
+  pull_request:
+    types: [opened, synchronize]
 
-# Run the local install script
-./install.sh
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: AI PR Review
+        uses: stillrivercode/stillriver-ai-bot@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
 ```
 
-### Or use npx (no installation required)
+## Inputs
 
-```bash
-# Create project directly
-npx @stillrivercode/stillriver-ai-bot my-ai-project
-cd my-ai-project
+See `action.yml` for a full list of inputs. For details on how to use `custom_review_rules` and understanding the prompt structure, see [docs/prompt-template-structure.md](docs/prompt-template-structure.md).
 
-# Run the local install script
-./install.sh
+### `github_token` Permissions
+
+This action requires the `pull-requests: write` permission to post review comments. You can grant this permission in your workflow file:
+
+```yaml
+permissions:
+  pull-requests: write
 ```
 
-## 🎯 What You Get
+## How It Works
 
-✅ **GitHub Actions workflows** for AI task automation
-✅ **Issue templates** for requesting AI assistance
-✅ **Pre-configured labels** and automation
-✅ **Cost monitoring** and usage optimization
-✅ **Security scanning** and quality gates
-✅ **Complete documentation** for your team
+### Input Types Note
 
-## 🛠️ Setup Process
+While the input descriptions in `action.yml` use semantic types like `number` or `string` for clarity, all GitHub Actions inputs are received as strings. The action handles the necessary parsing and validation internally. For example, `max_tokens` and `temperature` are parsed from strings to numbers with appropriate validation.
 
-After running the init command, you'll have a complete project with:
+### AI Review Types
 
-1. **AI-powered GitHub workflows** that respond to labeled issues
-2. **Issue templates** for different types of AI tasks
-3. **Automated quality checks** (linting, security, tests)
-4. **Cost controls** and monitoring
-5. **Documentation** tailored to your project
+The action supports different review types that tailor the AI's focus:
 
-### Required Secrets
+- **`full`** (default): Comprehensive review covering bugs, improvements, security, and code style
+- **`security`**: Focused on identifying security vulnerabilities
+- **`performance`**: Focused on identifying performance issues
 
-Add this to your GitHub repository settings:
+### Review Deduplication
 
-```bash
-# Required: OpenRouter API key for AI functionality
-gh secret set OPENROUTER_API_KEY
-```
+The action automatically prevents duplicate reviews by checking for existing AI reviews on the pull request. If an AI review (containing "## 🤖 AI Review") already exists from the `github-actions[bot]` user, the action will skip the review and set `review_status` to `skipped`.
 
-**Get your OpenRouter API key**: [openrouter.ai](https://openrouter.ai)
+### Review Status
 
-## 📋 How It Works
+The action sets the `review_status` output to indicate the result:
 
-1. **Create Issue**: Add `ai-task` label to any GitHub issue
-2. **AI Processing**: GitHub Action automatically implements the solution
-3. **Pull Request**: AI creates PR with code, tests, and documentation
-4. **Review & Merge**: Your team reviews and merges AI-generated code
+- **`success`**: Review was generated and posted successfully
+- **`skipped`**: Review was skipped (duplicate review exists, no changed files, or no files after filtering)
+- **`failure`**: An error occurred during the review process
 
-### Example Workflow
+## Contributing
 
-```bash
-# 1. Create an issue requesting a feature
-gh issue create --title "Add user authentication" --label "ai-task"
 
-# 2. AI automatically:
-#    - Creates feature branch
-#    - Implements the code
-#    - Adds tests
-#    - Creates pull request
-
-# 3. Review and merge the PR
-gh pr review --approve
-gh pr merge
-```
-
-## 🏷️ Available Labels
-
-The setup creates these labels for different AI workflows:
-
-- `ai-task` - General AI development tasks
-- `ai-bug-fix` - AI-assisted bug fixes
-- `ai-refactor` - Code refactoring requests
-- `ai-test` - Test generation
-- `ai-docs` - Documentation updates
-- `ai-fix-lint` - Automatic lint fixes
-- `ai-fix-security` - Security issue fixes
-- `ai-fix-tests` - Test failure fixes
-
-## 📚 Documentation
-
-After setup, your project includes:
-
-- **Getting Started Guide** - Team onboarding
-- **AI Workflow Guide** - How to use AI assistance
-- **Security Guidelines** - Safe AI development practices
-- **Troubleshooting** - Common issues and solutions
-
-## 🔒 Security Features
-
-- **Automated security scanning** with Bandit and Semgrep
-- **Dependency vulnerability checks**
-- **Secret detection** and prevention
-- **AI-powered security fixes** for detected issues
-- **Cost controls** to prevent runaway API usage
-
-## ⚡ CLI Commands
-
-```bash
-# Create new project
-stillriver-ai-bot <project-name>
-
-# Get help
-stillriver-ai-bot --help
-
-# Check version
-stillriver-ai-bot --version
-```
-
-### CLI Options
-
-```bash
-# Basic setup
-stillriver-ai-bot my-project
-
-# Force overwrite existing directory
-stillriver-ai-bot my-project --force
-
-# Use specific template
-stillriver-ai-bot my-project --template enterprise
-
-# Initialize git repository
-stillriver-ai-bot my-project --git-init
-```
-
-### Install Script Options
-
-```bash
-# Non-interactive installation
-./install.sh --auto-yes --anthropic-key YOUR_KEY
-
-# Development installation
-./install.sh --dev
-
-# Skip specific components
-./install.sh --skip-labels --skip-claude
-```
-
-## 🆘 Support & Troubleshooting
-
-### Common Issues
-
-| Issue | Solution |
-|-------|----------|
-| API key not working | Verify key at [openrouter.ai](https://openrouter.ai) |
-| Workflows not triggering | Check repository secrets are set |
-| AI tasks failing | Review workflow logs in GitHub Actions |
-| Permission errors | Check GitHub Actions permissions |
-
-### Getting Help
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/stillrivercode/stillriver-ai-bot/issues)
-- **Documentation**: Check the generated docs in your project
-- **Examples**: See working examples in the template repository
-
-## 🔄 Updates
-
-Keep your AI workflows up to date:
-
-```bash
-# Check for updates
-npm update @stillrivercode/stillriver-ai-bot
-
-# Update your project workflows (manual sync with template)
-git fetch template
-git log --oneline template/main ^HEAD
-```
-
-## 📄 License
-
-MIT License - free for personal and commercial use.
-
----
-
-**Ready to supercharge your development with AI?**
-
-```bash
-npx @stillrivercode/stillriver-ai-bot my-ai-project
-```
+Contributions are welcome! Please see `CONTRIBUTING.md` for more information.

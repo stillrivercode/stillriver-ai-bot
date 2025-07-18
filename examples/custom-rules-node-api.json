@@ -1,0 +1,37 @@
+{
+  "title": "Node.js REST API Review",
+  "description": "Comprehensive review for Node.js REST API applications focusing on scalability, security, and best practices",
+  "guidelines": [
+    "Review API design patterns and RESTful principles",
+    "Check authentication and authorization implementation",
+    "Validate input sanitization and request validation",
+    "Review error handling and proper HTTP status codes",
+    "Check database query optimization and connection handling",
+    "Verify proper logging and monitoring implementation",
+    "Review middleware usage and request/response flow",
+    "Check for rate limiting and security headers"
+  ],
+  "focusAreas": [
+    "RESTful API design and HTTP method usage",
+    "Authentication mechanisms (JWT, OAuth, API keys)",
+    "Request validation and input sanitization",
+    "Error handling and status code consistency",
+    "Database optimization and ORM usage",
+    "Middleware implementation and order",
+    "Logging, monitoring, and observability",
+    "Security headers and CORS configuration",
+    "Rate limiting and API throttling",
+    "Documentation and API versioning"
+  ],
+  "examples": [
+    "Use proper HTTP status codes (200, 201, 400, 401, 404, 500)",
+    "Implement comprehensive request validation middleware",
+    "Add authentication middleware for protected routes",
+    "Use database connection pooling and query optimization",
+    "Implement structured logging with correlation IDs",
+    "Add rate limiting to prevent API abuse",
+    "Use helmet.js for security headers",
+    "Implement proper CORS policies for cross-origin requests"
+  ],
+  "additionalInstructions": "Ensure the API follows RESTful principles and industry standards. Focus on scalability concerns and proper error handling. Validate that security measures are comprehensive and properly implemented. Consider API documentation completeness and versioning strategy. Pay attention to performance under load and proper resource management."
+}

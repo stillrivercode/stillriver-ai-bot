@@ -1,0 +1,5 @@
+{
+  "invalid": "json",
+  "structure": true,
+  "not": ["a", "valid", "custom", "rules", "file"]
+}

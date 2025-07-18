@@ -1,0 +1,19 @@
+{
+  "title": "Test Custom Review",
+  "description": "Test description for custom review rules",
+  "guidelines": [
+    "Check for proper error handling",
+    "Verify input validation",
+    "Ensure proper logging"
+  ],
+  "focusAreas": [
+    "Security",
+    "Performance",
+    "Maintainability"
+  ],
+  "examples": [
+    "Use try-catch blocks",
+    "Validate all user inputs"
+  ],
+  "additionalInstructions": "Pay special attention to authentication flows."
+}
