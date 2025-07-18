@@ -21,5 +21,7 @@ module.exports = {
     '*.min.js',
     'tests/',
     'coverage/',
+    '.eslintrc.js',
+    '.eslintrc.*.js',
   ],
 };
