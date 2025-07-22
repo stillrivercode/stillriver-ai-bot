@@ -147,7 +147,7 @@ describe('AI PR Review Action', () => {
     mockGetReviews.mockResolvedValue([
       {
         user: { login: 'github-actions[bot]' },
-        body: '## 🤖 AI Review\n\nThis is a test review.',
+        body: '## 🤖 AI Review by Gemini 2.5 Pro\n\nThis is a test review.',
       },
     ]);
 
