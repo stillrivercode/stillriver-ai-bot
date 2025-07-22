@@ -76,17 +76,21 @@ jobs:
 
     - name: Determine version bump
       id: bump
+      env:
+        CURRENT_VERSION: ${{ steps.current-version.outputs.version }}
+        TAG_NAME_INPUT: ${{ github.event.inputs.tag_name }}
+        VERSION_TYPE_INPUT: ${{ github.event.inputs.version_type || 'patch' }}
       run: |
-        current_version="${{ steps.current-version.outputs.version }}"
+        current_version="$CURRENT_VERSION"
 
-        if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+        if [ -n "$TAG_NAME_INPUT" ]; then
           # Manual tag name provided
-          new_tag="${{ github.event.inputs.tag_name }}"
+          new_tag="$TAG_NAME_INPUT"
           # Extract version from tag (remove 'v' prefix if present)
           new_version=$(echo "$new_tag" | sed 's/^v//')
         else
           # Automatic version bump
-          version_type="${{ github.event.inputs.version_type || 'patch' }}"
+          version_type="$VERSION_TYPE_INPUT"
 
           # Parse current version
           IFS='.' read -r major minor patch <<< "$current_version"
