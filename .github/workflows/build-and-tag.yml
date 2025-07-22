@@ -22,8 +22,8 @@ on:
         type: string
 
 permissions:
-  contents: write
-  actions: write
+  contents: write    # Required for git push, creating tags, and updating package.json
+  actions: write     # Required for workflow operations
 
 jobs:
   build-and-tag:
@@ -83,11 +83,25 @@ jobs:
       run: |
         current_version="$CURRENT_VERSION"
 
+        # Validate current version follows semantic versioning
+        if ! echo "$current_version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+          echo "ERROR: Current version in package.json is not semantic: $current_version"
+          echo "Expected format: X.Y.Z (e.g., 1.2.3)"
+          exit 1
+        fi
+
         if [ -n "$TAG_NAME_INPUT" ]; then
           # Manual tag name provided
           new_tag="$TAG_NAME_INPUT"
           # Extract version from tag (remove 'v' prefix if present)
           new_version=$(echo "$new_tag" | sed 's/^v//')
+
+          # Validate semantic versioning format (X.Y.Z)
+          if ! echo "$new_version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: Invalid semantic version format: $new_version"
+            echo "Expected format: X.Y.Z (e.g., 1.2.3)"
+            exit 1
+          fi
         else
           # Automatic version bump
           version_type="$VERSION_TYPE_INPUT"
@@ -123,8 +137,10 @@ jobs:
     - name: Build fresh dist files for release
       run: |
         echo "Building fresh dist files for release..."
+        # Ensure clean, fresh build for release
+        npm ci
         npm run build
-        echo "✅ Fresh dist files built for release"
+        echo "✅ Fresh dist files built for release with clean dependencies"
 
     - name: Update package.json version and commit dist files
       run: |
