@@ -1,6 +1,6 @@
 {
   "name": "@stillrivercode/stillriver-ai-bot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "AI-powered GitHub workflow automation bot with Information Dense Keywords integration",
   "keywords": [
     "github-actions",
