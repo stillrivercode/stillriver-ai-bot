@@ -64,7 +64,7 @@
     "yaml-lint": "^1.7.0"
   },
   "scripts": {
-    "build": "ncc build src/main.ts -o dist --source-map --license licenses.txt",
+    "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "jest",
     "lint": "eslint --ext .js,.ts,.jsx,.tsx src/ tests/ --fix",
     "lint:yaml": "yamllint -d relaxed *.yml *.yaml .github/workflows/*.yml .github/workflows/*.yaml || echo 'No YAML files to lint'",

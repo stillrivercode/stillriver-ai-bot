@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -572,8 +573,8 @@ class OidcClient {
             const res = yield httpclient
                 .getJson(id_token_url)
                 .catch(error => {
-                throw new Error(`Failed to get ID Token. \n 
-        Error Code : ${error.statusCode}\n 
+                throw new Error(`Failed to get ID Token. \n
+        Error Code : ${error.statusCode}\n
         Error Message: ${error.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
@@ -34644,6 +34645,56 @@ async function getReviews(octokit, owner, repo, prNumber) {
 
 /***/ }),
 
+/***/ 9407:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(7484));
+const main_1 = __nccwpck_require__(1730);
+// Execute the main function
+(0, main_1.run)().catch(error => {
+    core.error('Action failed:', error);
+    process.exit(1);
+});
+
+
+/***/ }),
+
 /***/ 1730:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -34710,6 +34761,7 @@ function validateInputs() {
 async function run() {
     try {
         core.info('Starting AI PR Review Action...');
+        core.info('DEBUG: Action is executing - this should appear in logs');
         validateInputs();
         const github_token = core.getInput('github_token', { required: true });
         const openrouter_api_key = core.getInput('openrouter_api_key', {
@@ -34752,21 +34804,23 @@ async function run() {
         const customRulesPath = core.getInput('custom_review_rules');
         const review = await (0, review_1.getReview)(openrouter_api_key, changedFiles, model, maxTokens, temperature, timeout, excludePatterns, pr.title, pr.body || '', reviewType, retries, customRulesPath);
         if (review) {
-            await octokit.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                body: `## 🤖 AI Review\n\n${review}`,
-                event: 'COMMENT',
-            });
+            core.info(`DEBUG: Setting outputs - review found with length: ${review.length}`);
+            core.setOutput('review_comment', review);
             core.setOutput('review_status', 'success');
+            core.info(`DEBUG: Outputs set - review_status: success, review_comment length: ${review.length}`);
         }
         else {
+            core.info('DEBUG: No review generated - setting skipped status');
+            core.setOutput('review_comment', '');
             core.setOutput('review_status', 'skipped');
+            core.info('DEBUG: Outputs set - review_status: skipped');
         }
     }
     catch (error) {
+        core.info('DEBUG: Error occurred, setting failure outputs');
         core.setOutput('review_status', 'failure');
+        core.setOutput('review_comment', '');
+        core.info('DEBUG: Error outputs set - review_status: failure');
         // 1. Handle custom error types
         if (error instanceof errors_1.OpenRouterAuthError) {
             core.setFailed(error.message);
@@ -37830,7 +37884,7 @@ class AST {
                         const aps = addPatternStart;
                         // check if we have a possibility of matching . or ..,
                         // and prevent that.
-                        const needNoTrav = 
+                        const needNoTrav =
                         // dots are allowed, and the pattern starts with [ or .
                         (dot && aps.has(src.charAt(0))) ||
                             // the pattern starts with \., and then [ or .
@@ -40402,14 +40456,14 @@ function buildURL(url, params, options) {
   if (!params) {
     return url;
   }
-  
+
   const _encode = options && options.encode || encode;
 
   if (utils$1.isFunction(options)) {
     options = {
       serialize: options
     };
-  } 
+  }
 
   const serializeFn = options && options.serialize;
 
@@ -41668,7 +41722,7 @@ class ZlibHeaderTransformStream extends stream__default["default"].Transform {
       if (chunk[0] !== 120) { // Hex: 78
         const header = Buffer.alloc(2);
         header[0] = 120; // Hex: 78
-        header[1] = 156; // Hex: 9C 
+        header[1] = 156; // Hex: 9C
         this.push(header, encoding);
       }
     }
@@ -44032,7 +44086,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -44046,7 +44100,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -44055,24 +44109,24 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
-/******/ 	
+/******/
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/ 	
+/******/
 /************************************************************************/
-/******/ 	
+/******/
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1730);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(9407);
 /******/ 	module.exports = __webpack_exports__;
-/******/ 	
+/******/
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map
