@@ -2,9 +2,11 @@
 
 An AI-powered GitHub workflow automation tool with Information Dense Keywords integration.
 
-**✨ Now fully integrated and tested with improved workflow reliability!**
-
-**✨ Now fully integrated and tested with improved workflow reliability!**
+**✨ Latest v1.0.6 Features:**
+- **Smart Comment Length Management**: Prevents truncation with intelligent 60K character limit and clear messaging
+- **Dynamic Model Headers**: AI review headers now reflect the actual model used (e.g., "AI Review by Gemini 2.5 Pro")
+- **Current Timestamps**: Reviews include real-time UTC dates for better tracking
+- **Enhanced Reliability**: Improved workflow stability and error handling
 
 ## Getting Started
 
@@ -15,20 +17,28 @@ name: AI PR Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   review:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: AI PR Review
         uses: stillrivercode/stillriver-ai-workflows@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: 'google/gemini-2.5-pro'
+          review_type: 'full'
+          max_tokens: 32768
+          temperature: 0.7
 ```
 
 ## Inputs
@@ -71,7 +81,15 @@ The action supports different review types that tailor the AI's focus:
 
 ### Review Deduplication
 
-The action automatically prevents duplicate reviews by checking for existing AI reviews on the pull request. If an AI review (containing "## 🤖 AI Review") already exists from the `github-actions[bot]` user, the action will skip the review and set `review_status` to `skipped`.
+The action automatically prevents duplicate reviews by checking for existing AI reviews on the pull request. If an AI review (containing "## 🤖 AI Review by") already exists from the `github-actions[bot]` user, the action will skip the review and set `review_status` to `skipped`.
+
+### AI Review Format
+
+AI reviews now include dynamic information:
+- **Header**: Reflects the actual AI model used (e.g., "## 🤖 AI Review by Gemini 2.5 Pro")
+- **Content**: Comprehensive analysis based on the selected review type
+- **Footer**: Includes generation timestamp and model details
+- **Length Protection**: Automatically truncates long reviews with clear messaging to stay within GitHub's comment limits
 
 ### Review Status
 
