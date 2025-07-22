@@ -106,6 +106,7 @@ export async function run(): Promise<void> {
     const retries = parseInt(core.getInput('retries'), 10);
     const reviewType = core.getInput('review_type');
     const customRulesPath = core.getInput('custom_review_rules');
+    const postComment = core.getInput('post_comment').toLowerCase() === 'true';
 
     const review = await getReview(
       openrouter_api_key,
@@ -133,6 +134,27 @@ export async function run(): Promise<void> {
           review.length
         }`
       );
+
+      // Post comment if requested
+      if (postComment) {
+        core.info('Posting AI review comment to PR...');
+        try {
+          await octokit.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: pr.number,
+            body: review,
+          });
+          core.info('AI review comment posted successfully');
+        } catch (commentError) {
+          core.warning(
+            `Failed to post comment: ${commentError instanceof Error ? commentError.message : String(commentError)}`
+          );
+          // Don't fail the action if comment posting fails - outputs are still set
+        }
+      } else {
+        core.info('post_comment is false - review available in outputs only');
+      }
     } else {
       core.info('DEBUG: No review generated - setting skipped status');
       core.setOutput('review_comment', '');

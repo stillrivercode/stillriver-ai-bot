@@ -77,6 +77,7 @@ Update your GitHub Actions workflow to use the custom rules:
     model: 'anthropic/claude-3.5-sonnet'
     review_type: 'security'  # or 'performance', 'comprehensive'
     custom_review_rules: '.github/custom-review-rules.json'
+    # post_comment: true (default - comments are posted automatically)
 ```
 
 ## Custom Rules Structure

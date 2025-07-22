@@ -35,6 +35,17 @@ jobs:
 
 See `action.yml` for a full list of inputs. For details on how to use `custom_review_rules` and understanding the prompt structure, see [docs/prompt-template-structure.md](docs/prompt-template-structure.md).
 
+### Required Parameters
+
+- `github_token`: Your GitHub token for API access
+- `openrouter_api_key`: Your OpenRouter API key for AI model access
+
+### Comment Posting
+
+**By default, the action automatically posts review comments to your PR.**
+
+Set `post_comment: false` if you only want to use the review content via outputs without posting a comment. This allows for maximum flexibility in how you handle the review content.
+
 ### `github_token` Permissions
 
 This action requires the `pull-requests: write` permission to post review comments. You can grant this permission in your workflow file:

@@ -83,6 +83,11 @@ inputs:
     description: 'A comma-separated list of glob patterns for files to exclude from the review.'
     required: false
     # type: string (comma-separated glob patterns)
+  post_comment:
+    description: 'Whether to automatically post the review as a PR comment. When false, only outputs are set.'
+    required: false
+    default: 'true'
+    # type: boolean (string representation)
 
 outputs:
   review_comment:

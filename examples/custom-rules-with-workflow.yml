@@ -23,6 +23,7 @@ jobs:
           review_type: 'security'
           custom_review_rules: 'examples/custom-rules-security-focus.json'
           exclude_patterns: 'dist/*,*.min.js,package-lock.json'
+          post_comment: true
 
   # Performance review for performance-related changes
   performance-review:
@@ -42,6 +43,7 @@ jobs:
           custom_review_rules: 'examples/custom-rules-performance-optimization.json'
           max_tokens: '6000'
           temperature: '0.3'
+          post_comment: true
 
   # React/TypeScript review for frontend changes
   frontend-review:
@@ -60,6 +62,7 @@ jobs:
           review_type: 'comprehensive'
           custom_review_rules: 'examples/custom-rules-typescript-react.json'
           exclude_patterns: '*.test.tsx,*.stories.tsx,dist/*'
+          post_comment: true
 
   # API review for backend changes
   backend-review:
@@ -78,6 +81,7 @@ jobs:
           review_type: 'comprehensive'
           custom_review_rules: 'examples/custom-rules-node-api.json'
           exclude_patterns: 'node_modules/*,logs/*,*.log'
+          post_comment: true
 
   # General code quality review for all other changes
   general-review:
@@ -102,3 +106,4 @@ jobs:
           max_tokens: '4096'
           temperature: '0.5'
           exclude_patterns: 'dist/*,build/*,*.min.js,package-lock.json,yarn.lock'
+          post_comment: true
