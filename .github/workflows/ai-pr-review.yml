@@ -188,10 +188,15 @@ jobs:
           npm ci
           npm run build
           ls -la ./dist/
+          echo "Testing action entry point..."
+          node -e "console.log('Node.js is working')"
+          echo "Checking dist/index.js..."
+          head -20 ./dist/index.js
 
       - name: Run AI Review
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
         id: ai_review
+        continue-on-error: true
         uses: ./
         with:
           github_token: ${{ github.token }}
@@ -203,6 +208,13 @@ jobs:
           max_tokens: 4096
           temperature: 0.7
           retries: 3
+
+      - name: Debug - Check action step result
+        if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
+        run: |
+          echo "AI Review Step Result:"
+          echo "outcome: ${{ steps.ai_review.outcome }}"
+          echo "conclusion: ${{ steps.ai_review.conclusion }}"
 
       - name: Debug - Check AI Review outputs
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
