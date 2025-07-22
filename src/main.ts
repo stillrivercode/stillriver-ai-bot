@@ -71,7 +71,7 @@ export async function run(): Promise<void> {
       existingReviews.some(
         review =>
           review.user?.login === 'github-actions[bot]' &&
-          review.body.includes('## 🤖 AI Review')
+          review.body.includes('## 🤖 AI Review by')
       )
     ) {
       core.info('An AI review already exists for this pull request. Skipping.');

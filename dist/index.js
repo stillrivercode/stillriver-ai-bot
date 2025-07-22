@@ -34777,7 +34777,7 @@ async function run() {
         if (existingReviews.some(review => {
             var _a;
             return ((_a = review.user) === null || _a === void 0 ? void 0 : _a.login) === 'github-actions[bot]' &&
-                review.body.includes('## 🤖 AI Review');
+                review.body.includes('## 🤖 AI Review by');
         })) {
             core.info('An AI review already exists for this pull request. Skipping.');
             core.setOutput('review_status', 'skipped');
