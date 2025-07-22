@@ -120,6 +120,12 @@ jobs:
         echo "New version: $new_version"
         echo "New tag: $new_tag"
 
+    - name: Build fresh dist files for release
+      run: |
+        echo "Building fresh dist files for release..."
+        npm run build
+        echo "✅ Fresh dist files built for release"
+
     - name: Update package.json version and commit dist files
       run: |
         npm version ${{ steps.bump.outputs.version }} --no-git-tag-version
