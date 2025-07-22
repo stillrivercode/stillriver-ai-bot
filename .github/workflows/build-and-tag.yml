@@ -116,13 +116,24 @@ jobs:
         echo "New version: $new_version"
         echo "New tag: $new_tag"
 
-    - name: Update package.json version
+    - name: Update package.json version and commit dist files
       run: |
         npm version ${{ steps.bump.outputs.version }} --no-git-tag-version
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add package.json package-lock.json
-        git commit -m "chore: bump version to ${{ steps.bump.outputs.version }}"
+        git add package.json package-lock.json dist/
+        git commit -m "chore: bump version to ${{ steps.bump.outputs.version }} and update dist files"
+
+    - name: Verify dist files are committed
+      run: |
+        echo "Verifying dist files are included in the latest commit..."
+        git show --name-only HEAD | grep -E "^dist/" || {
+          echo "ERROR: dist files not found in latest commit"
+          echo "Files in latest commit:"
+          git show --name-only HEAD
+          exit 1
+        }
+        echo "✅ dist files successfully committed"
 
     - name: Push version update
       run: git push origin main
