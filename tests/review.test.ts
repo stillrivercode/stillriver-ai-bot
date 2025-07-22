@@ -285,7 +285,7 @@ guidelines:
       // Should warn about truncation
       expect(core.warning).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Truncated 1 file(s) to fit within token limits'
+          'Truncated 1 file(s) using smart allocation to fit within token limits'
         )
       );
 
@@ -319,7 +319,7 @@ guidelines:
       // Should warn about truncation
       expect(core.warning).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Truncated 5 file(s) to fit within token limits'
+          'Truncated 5 file(s) using smart allocation to fit within token limits'
         )
       );
     });

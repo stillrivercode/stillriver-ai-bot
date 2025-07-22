@@ -205,7 +205,7 @@ jobs:
           review_type: 'full'
           exclude_patterns: 'package-lock.json,*.lock'
           request_timeout_seconds: 600
-          max_tokens: 4096
+          max_tokens: 32768
           temperature: 0.7
           retries: 3
 
@@ -235,12 +235,12 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const review = `${{ steps.ai_review.outputs.review_comment }}`;
-            const model = '${{ vars.AI_MODEL }}' || 'google/gemini-2.5-pro';
+            const review = process.env.REVIEW_CONTENT;
+            const model = process.env.AI_MODEL || 'google/gemini-2.5-pro';
 
             console.log('Post review comment step executing...');
-            console.log('Review content length:', review.length);
-            console.log('Review preview:', review.substring(0, 100));
+            console.log('Review content length:', review ? review.length : 0);
+            console.log('Review preview:', review ? review.substring(0, 100) : 'No content');
 
             if (!review || review.trim() === '') {
               console.log('No review content to post - review is empty');
@@ -269,6 +269,9 @@ jobs:
               });
               console.log('Comment posted successfully');
             }
+        env:
+          REVIEW_CONTENT: ${{ steps.ai_review.outputs.review_comment }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
 
       - name: Handle AI review failure
         if: steps.ai_review.outputs.review_status == 'failure' || steps.ai_review.outputs.review_status == 'error'
@@ -276,21 +279,54 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            // Add a label to indicate AI review failed (but not ai-review-needed to avoid loops)
-            await github.rest.issues.addLabels({
-              ...context.repo,
-              issue_number: context.issue.number,
-              labels: ['ai-review-failed']
-            });
+            // Safely add failure label with auto-creation
+            try {
+              console.log('Adding ai-review-failed label...');
+
+              // Check if label exists, create if missing
+              try {
+                await github.rest.issues.getLabel({
+                  ...context.repo,
+                  name: 'ai-review-failed'
+                });
+                console.log('ai-review-failed label already exists');
+              } catch (labelError) {
+                if (labelError.status === 404) {
+                  console.log('Creating ai-review-failed label...');
+                  await github.rest.issues.createLabel({
+                    ...context.repo,
+                    name: 'ai-review-failed',
+                    color: 'D93F0B',
+                    description: 'AI review failed - manual review needed'
+                  });
+                  console.log('✓ Created ai-review-failed label');
+                }
+              }
+
+              // Add the label to the PR/issue
+              await github.rest.issues.addLabels({
+                ...context.repo,
+                issue_number: context.issue.number,
+                labels: ['ai-review-failed']
+              });
+              console.log('✓ Added ai-review-failed label to PR');
+            } catch (error) {
+              console.log(`⚠ Failed to add ai-review-failed label: ${error.message}`);
+            }
 
             // Post a comment about the failure
             const failureComment = `## ⚠️ AI Review Failed\n\nThe AI review could not be completed. This could be due to:\n- API rate limiting\n- Large diff size\n- Temporary service issues\n\nPlease retry the review later or request manual review.`;
 
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
-              body: failureComment
-            });
+            try {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: failureComment
+              });
+              console.log('✓ Posted failure comment');
+            } catch (error) {
+              console.log(`⚠ Failed to post failure comment: ${error.message}`);
+            }
 
             // Fail the workflow step to indicate the review failure
             core.setFailed('AI review failed - manual review needed');
@@ -305,7 +341,81 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const review = `${{ steps.ai_review.outputs.review_comment }}`.toLowerCase();
+            const review = (process.env.REVIEW_CONTENT || '').toLowerCase();
+
+            // Helper function to safely add labels with auto-creation
+            const safeAddLabels = async (labelsToAdd) => {
+              if (labelsToAdd.length === 0) return;
+
+              console.log(`Attempting to add labels: ${labelsToAdd.join(', ')}`);
+
+              // First, get existing repository labels
+              let existingLabels;
+              try {
+                const { data } = await github.rest.issues.listLabelsForRepo({
+                  ...context.repo,
+                  per_page: 100
+                });
+                existingLabels = new Set(data.map(label => label.name));
+                console.log(`Repository has ${existingLabels.size} existing labels`);
+              } catch (error) {
+                console.log(`Warning: Could not fetch existing labels: ${error.message}`);
+                existingLabels = new Set();
+              }
+
+              // Create missing labels with appropriate colors and descriptions
+              const labelDefinitions = {
+                'security-review-needed': { color: 'E99695', description: 'Requires security review' },
+                'performance-impact': { color: 'F9D71C', description: 'May impact performance' },
+                'breaking-change': { color: 'B60205', description: 'Breaking API changes' },
+                'needs-docs': { color: 'BFD4F2', description: 'Documentation updates needed' },
+                'ai-reviewed': { color: '9F4F96', description: 'Reviewed by AI PR review system' }
+              };
+
+              for (const labelName of labelsToAdd) {
+                if (!existingLabels.has(labelName)) {
+                  console.log(`Creating missing label: ${labelName}`);
+                  try {
+                    const labelDef = labelDefinitions[labelName] || { color: 'CCCCCC', description: 'Auto-created by AI workflow' };
+                    await github.rest.issues.createLabel({
+                      ...context.repo,
+                      name: labelName,
+                      color: labelDef.color,
+                      description: labelDef.description
+                    });
+                    console.log(`✓ Created label: ${labelName}`);
+                    existingLabels.add(labelName); // Add to set for subsequent iterations
+                  } catch (error) {
+                    console.log(`⚠ Failed to create label ${labelName}: ${error.message}`);
+                  }
+                }
+              }
+
+              // Now add all labels to the issue/PR
+              try {
+                await github.rest.issues.addLabels({
+                  ...context.repo,
+                  issue_number: context.issue.number,
+                  labels: labelsToAdd
+                });
+                console.log(`✓ Successfully added labels: ${labelsToAdd.join(', ')}`);
+              } catch (error) {
+                console.log(`⚠ Failed to add some labels: ${error.message}`);
+                // Try adding labels one by one if bulk add fails
+                for (const labelName of labelsToAdd) {
+                  try {
+                    await github.rest.issues.addLabels({
+                      ...context.repo,
+                      issue_number: context.issue.number,
+                      labels: [labelName]
+                    });
+                    console.log(`✓ Added label individually: ${labelName}`);
+                  } catch (individualError) {
+                    console.log(`⚠ Failed to add individual label ${labelName}: ${individualError.message}`);
+                  }
+                }
+              }
+            };
 
             const labels = [];
 
@@ -349,13 +459,10 @@ jobs:
               label !== 'ai-fix-tests'
             );
 
-            if (filteredLabels.length > 0) {
-              await github.rest.issues.addLabels({
-                ...context.repo,
-                issue_number: context.issue.number,
-                labels: filteredLabels
-              });
-            }
+            // Use the safe label adding function
+            await safeAddLabels(filteredLabels);
+        env:
+          REVIEW_CONTENT: ${{ steps.ai_review.outputs.review_comment }}
 
       - name: Remove ai-review-needed label
         if: >
