@@ -221,11 +221,13 @@ jobs:
         run: |
           echo "AI Review Step Outputs:"
           echo "review_status: ${{ steps.ai_review.outputs.review_status }}"
-          echo "review_comment: ${{ steps.ai_review.outputs.review_comment }}"
+          echo "review_comment length: ${#REVIEW_COMMENT}"
           echo "Conditions check:"
           echo "check_tests result: ${{ steps.check_tests.outputs.result }}"
           echo "recent_review skip: ${{ steps.check_recent_review.outputs.skip }}"
           echo "ai_review status: ${{ steps.ai_review.outputs.review_status }}"
+        env:
+          REVIEW_COMMENT: ${{ steps.ai_review.outputs.review_comment }}
 
       - name: Post review comment
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true' && steps.ai_review.outputs.review_status == 'success'
