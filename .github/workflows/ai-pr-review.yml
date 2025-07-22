@@ -195,7 +195,7 @@ jobs:
           github-token: ${{ github.token }}
           script: |
             const review = `${{ steps.ai_review.outputs.review_comment }}`;
-            const model = '${{ vars.AI_MODEL || "google/gemini-2.5-pro" }}';
+            const model = '${{ vars.AI_MODEL || ''google/gemini-2.5-pro'' }}';
 
             if (!review || review.trim() === '') {
               console.log('No review content to post');
