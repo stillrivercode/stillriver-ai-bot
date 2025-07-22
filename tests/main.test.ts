@@ -112,13 +112,11 @@ describe('AI PR Review Action', () => {
     expect(mockInfo).toHaveBeenCalledWith('Starting AI PR Review Action...');
     expect(mockInfo).toHaveBeenCalledWith('Found 1 changed files.');
     expect(mockSetOutput).toHaveBeenCalledWith('review_status', 'success');
-    expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
-      owner: 'test-owner',
-      repo: 'test-repo',
-      pull_number: 123,
-      body: '## 🤖 AI Review\n\nThis is a test review.',
-      event: 'COMMENT',
-    });
+    expect(mockSetOutput).toHaveBeenCalledWith(
+      'review_comment',
+      'This is a test review.'
+    );
+    expect(mockOctokit.rest.pulls.createReview).not.toHaveBeenCalled();
   });
 
   it.skip('should throw an error if not in a pull request context', async () => {

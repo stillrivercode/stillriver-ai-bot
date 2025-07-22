@@ -122,19 +122,15 @@ export async function run(): Promise<void> {
     );
 
     if (review) {
-      await octokit.rest.pulls.createReview({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        pull_number: pr.number,
-        body: `## 🤖 AI Review\n\n${review}`,
-        event: 'COMMENT',
-      });
+      core.setOutput('review_comment', review);
       core.setOutput('review_status', 'success');
     } else {
+      core.setOutput('review_comment', '');
       core.setOutput('review_status', 'skipped');
     }
   } catch (error) {
     core.setOutput('review_status', 'failure');
+    core.setOutput('review_comment', '');
 
     // 1. Handle custom error types
     if (error instanceof OpenRouterAuthError) {
