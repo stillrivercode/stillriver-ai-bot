@@ -2,7 +2,7 @@
 # Node
 node_modules
 npm-debug.log
-dist
+# dist - commented out so dist files can be committed for GitHub Actions
 
 # Environment variables
 .env
