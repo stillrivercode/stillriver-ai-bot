@@ -175,7 +175,7 @@ jobs:
       - name: Run AI PR Review
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
         id: ai_review
-        uses: ./
+        uses: stillrivercode/stillriver-ai-bot@v1.0.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
