@@ -142,12 +142,71 @@ jobs:
         npm run build
         echo "✅ Fresh dist files built for release with clean dependencies"
 
+    - name: Update CHANGELOG.md
+      run: |
+        set -euo pipefail  # Robust error handling
+
+        # Get the current date and version
+        RELEASE_DATE=$(date +%Y-%m-%d)
+        NEW_VERSION="${{ steps.bump.outputs.version }}"
+        NODE_VERSION="20"  # Hardcoded - update if Node.js version changes
+
+        # Create a temporary file with the new changelog entry
+        cat > changelog_entry.md << EOF
+        ## [$NEW_VERSION] - $RELEASE_DATE
+
+        ### Added
+        - Automated CHANGELOG.md update during release workflow
+        - Enhanced build and tagging process for version $NEW_VERSION
+
+        ### Changed
+        - Automatic version bump and distribution file regeneration for release
+        - Updated compiled JavaScript bundle in dist/ directory
+
+        ### Technical
+        - Build from commit: ${{ github.sha }}
+        - Build date: $RELEASE_DATE
+        - Node.js version: $NODE_VERSION
+
+        EOF
+
+        # Update CHANGELOG.md if it exists
+        if [ -f "CHANGELOG.md" ]; then
+          # Create a backup
+          cp CHANGELOG.md CHANGELOG.md.bak
+
+          # Find the first version entry line to insert before it
+          # Look for the first line starting with "## [" (version entry)
+          FIRST_VERSION_LINE=$(grep -n "^## \[" CHANGELOG.md | head -n 1 | cut -d: -f1 || echo "")
+
+          if [ -n "$FIRST_VERSION_LINE" ]; then
+            # Insert before the first version entry
+            head -n $((FIRST_VERSION_LINE - 1)) CHANGELOG.md > CHANGELOG_new.md
+            cat changelog_entry.md >> CHANGELOG_new.md
+            tail -n +$FIRST_VERSION_LINE CHANGELOG.md >> CHANGELOG_new.md
+          else
+            # No existing version entries found, append to end
+            cat CHANGELOG.md > CHANGELOG_new.md
+            cat changelog_entry.md >> CHANGELOG_new.md
+          fi
+
+          # Replace the original file
+          mv CHANGELOG_new.md CHANGELOG.md
+
+          echo "✅ Updated CHANGELOG.md with version $NEW_VERSION"
+        else
+          echo "⚠️ CHANGELOG.md not found, skipping changelog update"
+        fi
+
+        # Clean up temporary file
+        rm -f changelog_entry.md
+
     - name: Update package.json version and commit dist files
       run: |
         npm version ${{ steps.bump.outputs.version }} --no-git-tag-version
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add package.json package-lock.json dist/ --force
+        git add package.json package-lock.json dist/ CHANGELOG.md --force
         git commit -m "chore: bump version to ${{ steps.bump.outputs.version }} and update dist files"
 
     - name: Verify dist files are committed
