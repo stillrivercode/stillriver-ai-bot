@@ -29,12 +29,15 @@ export class OpenRouterAuthError extends BaseError {
  * Error thrown when OpenRouter API rate limit is exceeded
  */
 export class OpenRouterRateLimitError extends BaseError {
-  constructor(public readonly retryAfter?: number) {
+  public readonly retryAfter?: number;
+
+  constructor(retryAfter?: number) {
     super(
       `OpenRouter API rate limit exceeded${
         retryAfter ? ` (retry after ${retryAfter}s)` : ''
       }`
     );
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -42,16 +45,17 @@ export class OpenRouterRateLimitError extends BaseError {
  * Error thrown when OpenRouter API request fails
  */
 export class OpenRouterApiError extends BaseError {
-  constructor(
-    message: string,
-    public readonly statusCode?: number,
-    public readonly responseData?: unknown
-  ) {
+  public readonly statusCode?: number;
+  public readonly responseData?: unknown;
+
+  constructor(message: string, statusCode?: number, responseData?: unknown) {
     super(
       `${message}${statusCode ? ` (HTTP ${statusCode})` : ''}${
         responseData ? ` - Response: ${JSON.stringify(responseData)}` : ''
       }`
     );
+    this.statusCode = statusCode;
+    this.responseData = responseData;
   }
 }
 
@@ -77,10 +81,10 @@ export class ConfigurationError extends BaseError {
  * Error thrown when custom review rules are invalid
  */
 export class InvalidCustomRulesError extends BaseError {
-  constructor(
-    message: string,
-    public readonly filePath: string
-  ) {
+  public readonly filePath: string;
+
+  constructor(message: string, filePath: string) {
     super(`${message} (file: ${filePath})`);
+    this.filePath = filePath;
   }
 }

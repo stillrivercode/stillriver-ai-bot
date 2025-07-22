@@ -314,6 +314,7 @@ export async function getReview(
   // Process diffs with smart allocation
   const processedDiffs = filteredFiles
     .map((file, index) => {
+      // eslint-disable-next-line security/detect-object-injection
       const originalSize = fileSizes[index];
       let allowedSize: number;
 
@@ -361,6 +362,7 @@ ${truncatedPatch}
   // Count truncated files from the processing above
   let truncatedCount = 0;
   filteredFiles.forEach((file, index) => {
+    // eslint-disable-next-line security/detect-object-injection
     const originalSize = fileSizes[index];
     let allowedSize: number;
 

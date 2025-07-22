@@ -181,11 +181,20 @@ jobs:
           ls -la ./dist/ || echo "dist folder not found"
           cat action.yml | head -10
 
+      - name: Cache Node Modules
+        if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Build action for testing
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
         run: |
           echo "Building action..."
-          npm ci
+          npm ci --cache ~/.npm --prefer-offline
           npm run build
           ls -la ./dist/
           echo "Testing action entry point..."
