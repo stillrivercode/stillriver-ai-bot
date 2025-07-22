@@ -1,0 +1,10 @@
+# Mark dist files as generated for GitHub UI
+dist/* linguist-generated=true
+
+# Ensure consistent line endings
+* text=auto
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
