@@ -147,7 +147,7 @@ jobs:
         npm version ${{ steps.bump.outputs.version }} --no-git-tag-version
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add package.json package-lock.json dist/
+        git add package.json package-lock.json dist/ --force
         git commit -m "chore: bump version to ${{ steps.bump.outputs.version }} and update dist files"
 
     - name: Verify dist files are committed
