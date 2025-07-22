@@ -2,12 +2,6 @@
 
 An AI-powered GitHub workflow automation tool with Information Dense Keywords integration.
 
-**✨ Latest v1.0.6 Features:**
-- **Smart Comment Length Management**: Prevents truncation with intelligent 60K character limit and clear messaging
-- **Dynamic Model Headers**: AI review headers now reflect the actual model used (e.g., "AI Review by Gemini 2.5 Pro")
-- **Current Timestamps**: Reviews include real-time UTC dates for better tracking
-- **Enhanced Reliability**: Improved workflow stability and error handling
-
 ## Getting Started
 
 To use this action, create a workflow file (e.g., `.github/workflows/ai-review.yml`) in your repository with the following content:
@@ -35,7 +29,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
-          model: 'google/gemini-2.5-pro'
+          model: ${{ vars.AI_MODEL || 'google/gemini-2.5-pro' }}
           review_type: 'full'
           max_tokens: 32768
           temperature: 0.7
