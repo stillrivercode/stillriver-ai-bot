@@ -181,6 +181,11 @@ jobs:
     if: needs.build-and-tag.outputs.new-tag
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Verify tag was created
       run: |
         echo "Verifying tag: ${{ needs.build-and-tag.outputs.new-tag }}"
