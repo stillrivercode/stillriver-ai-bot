@@ -1,6 +1,6 @@
 # Custom Review Rules Examples
 
-This directory contains example custom review rules files that can be used with the AI PR Review Action to customize the review process for specific project needs.
+This directory contains example custom review rules files that can be used with the AI Workflows to customize the review process for specific project needs.
 
 > **Note:** Currently, only JSON format is supported for custom review rules. YAML support may be added in future versions.
 
@@ -69,8 +69,8 @@ Edit the copied file to match your specific requirements:
 Update your GitHub Actions workflow to use the custom rules:
 
 ```yaml
-- name: AI PR Review
-  uses: stillrivercode/stillriver-ai-bot@v1
+- name: AI Workflow Review
+  uses: stillrivercode/stillriver-ai-workflows@v1
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}

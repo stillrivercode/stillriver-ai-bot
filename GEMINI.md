@@ -1,10 +1,10 @@
-# Gemini Project Overview: stillriver-ai-bot
+# Gemini Project Overview: stillriver-ai-workflows
 
-This document provides a comprehensive overview of the `stillriver-ai-bot` project, an AI-powered GitHub workflow automation system.
+This document provides a comprehensive overview of the `stillriver-ai-workflows` project, an AI-powered GitHub workflow automation system.
 
 ## Core Purpose
 
-The `stillriver-ai-bot` is a CLI tool that sets up a complete AI-assisted development environment within a GitHub repository. It provides a suite of GitHub Actions workflows, issue templates, and scripts to automate various software development tasks using AI, primarily leveraging large language models like Claude and those available through OpenRouter.
+The `stillriver-ai-workflows` is a CLI tool that sets up a complete AI-assisted development environment within a GitHub repository. It provides a suite of GitHub Actions workflows, issue templates, and scripts to automate various software development tasks using AI, primarily leveraging large language models like Claude and those available through OpenRouter.
 
 The system is designed to respond to GitHub issues with specific labels (e.g., `ai-task`, `ai-bug-fix`), automatically generate code, create pull requests, and even fix linting, security, and test failures.
 
@@ -39,8 +39,8 @@ The system is designed to respond to GitHub issues with specific labels (e.g., `
 
 To use this system, a user needs to:
 
-1.  Install the CLI tool (`npm install -g @stillrivercode/stillriver-ai-bot`).
-2.  Run the setup command (`stillriver-ai-bot my-ai-project`).
+1.  Install the CLI tool (`npm install -g @stillrivercode/stillriver-ai-workflows`).
+2.  Run the setup command (`stillriver-ai-workflows my-ai-project`).
 3.  Configure GitHub repository secrets, primarily `OPENROUTER_API_KEY`.
 4.  Set up repository labels using the provided script (`./scripts/setup-labels.sh`).
 

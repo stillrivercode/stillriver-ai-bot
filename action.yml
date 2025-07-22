@@ -1,8 +1,8 @@
-name: 'AI PR Review Action'
-description: 'An AI-powered GitHub Action for automated pull request reviews using OpenRouter.'
+name: 'AI Workflows'
+description: 'AI-powered GitHub workflow automation with Information Dense Keywords integration.'
 author: 'StillRiver AI'
 # Example usage:
-#   - uses: stillrivercode/ai-pr-review-action@v1
+#   - uses: stillrivercode/stillriver-ai-workflows@v1
 #     with:
 #       github_token: ${{ secrets.GITHUB_TOKEN }}
 #       openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}

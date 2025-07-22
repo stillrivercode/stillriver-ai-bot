@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Issue**: [#1 - AI Workflow Template User Management](https://github.com/stillrivercode/stillriver-ai-bot/issues/1)
+- **Issue**: [#1 - AI Workflow Template User Management](https://github.com/stillrivercode/stillriver-ai-workflows/issues/1)
 - **Created**: 2025-06-30
 - **Document Type**: Technical Specification
 - **Status**: Draft
@@ -364,7 +364,7 @@ CREATE TABLE users (
 
 ## Issue Reference
 
-**GitHub Issue**: [#1 - AI Workflow Template User Management](https://github.com/stillrivercode/stillriver-ai-bot/issues/1)
+**GitHub Issue**: [#1 - AI Workflow Template User Management](https://github.com/stillrivercode/stillriver-ai-workflows/issues/1)
 
 ### Original Description
 
@@ -388,5 +388,5 @@ Technical specification for implementing user authentication and authorization i
 
 **Generated**: 2025-06-30
 **Tool**: create-spec
-**Repository**: stillrivercode/stillriver-ai-bot
+**Repository**: stillrivercode/stillriver-ai-workflows
 **Workflow**: Unified Issue & Documentation Creation
