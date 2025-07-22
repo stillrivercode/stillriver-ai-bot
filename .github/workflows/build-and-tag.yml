@@ -169,6 +169,23 @@ jobs:
         git tag ${{ steps.bump.outputs.new-tag }}
         git push origin ${{ steps.bump.outputs.new-tag }}
 
+    - name: Update major version tag
+      run: |
+        new_version="${{ steps.bump.outputs.version }}"
+        new_tag="${{ steps.bump.outputs.new-tag }}"
+
+        # Extract major version (e.g., "1" from "1.2.3")
+        major_version=$(echo "$new_version" | cut -d. -f1)
+        major_tag="v$major_version"
+
+        echo "Updating major version tag: $major_tag -> $new_tag"
+
+        # Create or update the major version tag to point to the new specific version
+        git tag -f "$major_tag" "$new_tag"
+        git push origin "$major_tag" --force
+
+        echo "✅ Major version tag $major_tag updated to point to $new_tag"
+
     - name: Create pre-release notes
       id: release-notes
       run: |
