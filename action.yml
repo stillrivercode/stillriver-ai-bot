@@ -38,7 +38,8 @@ inputs:
     description: |
       The AI model to use for the review.
       Common examples:
-      - anthropic/claude-3.5-sonnet (default, balanced performance)
+      - google/gemini-2.5-pro (default, balanced performance)
+      - anthropic/claude-3.5-sonnet (balanced performance)
       - anthropic/claude-3-opus (highest quality, more expensive)
       - anthropic/claude-3-haiku (fastest, most cost-effective)
       - openai/gpt-4o (OpenAI's latest)
@@ -47,7 +48,7 @@ inputs:
 
       For the complete list of available models, see: https://openrouter.ai/models
     required: false
-    default: 'anthropic/claude-3.5-sonnet'
+    default: 'google/gemini-2.5-pro'
     # type: string
   review_type:
     description: 'The type of review to perform (e.g., full, security, performance).'

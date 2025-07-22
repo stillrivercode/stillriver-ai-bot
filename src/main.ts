@@ -42,6 +42,7 @@ function validateInputs(): void {
 export async function run(): Promise<void> {
   try {
     core.info('Starting AI PR Review Action...');
+    core.info('DEBUG: Action is executing - this should appear in logs');
     validateInputs();
 
     const github_token = core.getInput('github_token', { required: true });
@@ -122,19 +123,27 @@ export async function run(): Promise<void> {
     );
 
     if (review) {
-      await octokit.rest.pulls.createReview({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        pull_number: pr.number,
-        body: `## 🤖 AI Review\n\n${review}`,
-        event: 'COMMENT',
-      });
+      core.info(
+        `DEBUG: Setting outputs - review found with length: ${review.length}`
+      );
+      core.setOutput('review_comment', review);
       core.setOutput('review_status', 'success');
+      core.info(
+        `DEBUG: Outputs set - review_status: success, review_comment length: ${
+          review.length
+        }`
+      );
     } else {
+      core.info('DEBUG: No review generated - setting skipped status');
+      core.setOutput('review_comment', '');
       core.setOutput('review_status', 'skipped');
+      core.info('DEBUG: Outputs set - review_status: skipped');
     }
   } catch (error) {
+    core.info('DEBUG: Error occurred, setting failure outputs');
     core.setOutput('review_status', 'failure');
+    core.setOutput('review_comment', '');
+    core.info('DEBUG: Error outputs set - review_status: failure');
 
     // 1. Handle custom error types
     if (error instanceof OpenRouterAuthError) {

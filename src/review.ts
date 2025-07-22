@@ -291,23 +291,67 @@ export async function getReview(
     return null;
   }
 
-  // Calculate max characters per file based on total files and max tokens
-  // Reserve ~1000 tokens for the prompt template and response
-  const reservedTokens = 1000;
-  const availableTokens = Math.max(maxTokens - reservedTokens, 1000);
-  const maxCharsTotal = availableTokens * 4; // ~4 chars per token
-  const maxCharsPerFile = Math.floor(
-    maxCharsTotal / Math.max(filteredFiles.length, 1)
-  );
+  // Smart allocation: give small files what they need, large files more space
+  const reservedTokens = 2000;
+  const availableTokens = Math.max(maxTokens - reservedTokens, 2000);
+  const maxCharsTotal = availableTokens * 3.5; // More conservative char-to-token ratio
 
-  // Ensure a minimum of 500 chars per file for meaningful review
-  const minCharsPerFile = 500;
-  const effectiveMaxCharsPerFile = Math.max(maxCharsPerFile, minCharsPerFile);
+  // Calculate actual file sizes and smart allocation
+  const fileSizes = filteredFiles.map(file => file.patch.length);
+  const totalActualSize = fileSizes.reduce((sum, size) => sum + size, 0);
 
-  // Process diffs with truncation
+  // If total content fits comfortably, don't truncate anything
+  if (totalActualSize <= maxCharsTotal * 0.8) {
+    core.info(
+      `Total content (${totalActualSize} chars) fits within limits. No truncation needed.`
+    );
+  } else {
+    core.info(
+      `Content requires smart allocation. Total: ${totalActualSize} chars, Available: ${Math.floor(maxCharsTotal)} chars`
+    );
+  }
+
+  // Process diffs with smart allocation
   const processedDiffs = filteredFiles
-    .map(file => {
-      const truncatedPatch = truncateDiff(file.patch, effectiveMaxCharsPerFile);
+    .map((file, index) => {
+      // eslint-disable-next-line security/detect-object-injection
+      const originalSize = fileSizes[index];
+      let allowedSize: number;
+
+      if (totalActualSize <= maxCharsTotal * 0.8) {
+        // No truncation needed - use original size
+        allowedSize = originalSize;
+      } else {
+        // Smart allocation: proportional to file size with minimum guarantees
+        const minCharsPerFile = 1500; // Reduced minimum for better distribution
+        const baseAllocation = Math.max(
+          minCharsPerFile,
+          Math.floor(maxCharsTotal / filteredFiles.length)
+        );
+
+        // Give proportionally more space to larger files
+        const proportionalSize = Math.floor(
+          (originalSize / totalActualSize) * maxCharsTotal
+        );
+        allowedSize = Math.max(
+          baseAllocation,
+          Math.min(proportionalSize, originalSize)
+        );
+
+        // Ensure we don't exceed total budget
+        const maxAllowedSize = Math.floor(maxCharsTotal * 0.9); // Leave 10% buffer
+        allowedSize = Math.min(allowedSize, maxAllowedSize);
+      }
+
+      const truncatedPatch = truncateDiff(file.patch, allowedSize);
+      const wasTruncated = truncatedPatch.length < file.patch.length;
+
+      if (wasTruncated) {
+        core.info(
+          `File ${file.filename}: ${originalSize} → ${truncatedPatch.length} chars (${Math.round((truncatedPatch.length / originalSize) * 100)}%)`
+        );
+      }
+
       return `File: ${file.filename}
 \`\`\`diff
 ${truncatedPatch}
@@ -315,15 +359,40 @@ ${truncatedPatch}
     })
     .join('\n\n');
 
-  // Log if any files were truncated
-  const truncatedCount = filteredFiles.filter(
-    file => file.patch.length > effectiveMaxCharsPerFile
-  ).length;
+  // Count truncated files from the processing above
+  let truncatedCount = 0;
+  filteredFiles.forEach((file, index) => {
+    // eslint-disable-next-line security/detect-object-injection
+    const originalSize = fileSizes[index];
+    let allowedSize: number;
+
+    if (totalActualSize <= maxCharsTotal * 0.8) {
+      allowedSize = originalSize;
+    } else {
+      const minCharsPerFile = 1500;
+      const baseAllocation = Math.max(
+        minCharsPerFile,
+        Math.floor(maxCharsTotal / filteredFiles.length)
+      );
+      const proportionalSize = Math.floor(
+        (originalSize / totalActualSize) * maxCharsTotal
+      );
+      allowedSize = Math.max(
+        baseAllocation,
+        Math.min(proportionalSize, originalSize)
+      );
+      const maxAllowedSize = Math.floor(maxCharsTotal * 0.9);
+      allowedSize = Math.min(allowedSize, maxAllowedSize);
+    }
+
+    if (originalSize > allowedSize) {
+      truncatedCount++;
+    }
+  });
 
   if (truncatedCount > 0) {
     core.warning(
-      `Truncated ${truncatedCount} file(s) to fit within token limits. ` +
-        `Max ${effectiveMaxCharsPerFile} chars per file.`
+      `Truncated ${truncatedCount} file(s) using smart allocation to fit within token limits.`
     );
   }
 
