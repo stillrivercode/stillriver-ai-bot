@@ -11,6 +11,6 @@ currently being supported with security updates.
 
 ## Reporting a Vulnerability
 
-We take security vulnerabilities seriously. To report a security vulnerability, please use the [GitHub Security Advisory](https://github.com/stillriver-ai/stillriver-ai-bot/security/advisories/new) feature. This will ensure that the vulnerability is disclosed privately and responsibly.
+We take security vulnerabilities seriously. To report a security vulnerability, please use the [GitHub Security Advisory](https://github.com/stillriver-ai/stillriver-ai-workflows/security/advisories/new) feature. This will ensure that the vulnerability is disclosed privately and responsibly.
 
 Please do **not** report security vulnerabilities through public GitHub issues.

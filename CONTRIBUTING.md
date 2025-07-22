@@ -1,14 +1,14 @@
-# Contributing to Stillriver AI Bot
+# Contributing to Stillriver AI Workflows
 
-First off, thank you for considering contributing to the Stillriver AI Bot! It's people like you that make this such a great tool.
+First off, thank you for considering contributing to the Stillriver AI Workflows! It's people like you that make this such a great tool.
 
 ## Where do I go from here?
 
-If you've noticed a bug or have a feature request, [make one](https://github.com/stillrivercode/stillriver-ai-bot/issues/new/choose)! It's generally best if you get confirmation of your bug or approval for your feature request this way before starting to code.
+If you've noticed a bug or have a feature request, [make one](https://github.com/stillrivercode/stillriver-ai-workflows/issues/new/choose)! It's generally best if you get confirmation of your bug or approval for your feature request this way before starting to code.
 
 ### Fork & create a branch
 
-If this is something you think you can fix, then [fork the repository](https://github.com/stillrivercode/stillriver-ai-bot/fork) and create a branch with a descriptive name.
+If this is something you think you can fix, then [fork the repository](https://github.com/stillrivercode/stillriver-ai-workflows/fork) and create a branch with a descriptive name.
 
 A good branch name would be (where issue #38 is the ticket you're working on):
 
@@ -44,7 +44,7 @@ Your patch should follow the same conventions & pass the same code quality check
 At this point, you should switch back to your main branch and make sure it's up to date with the main project repository:
 
 ```sh
-git remote add upstream git@github.com:stillrivercode/stillriver-ai-bot.git
+git remote add upstream git@github.com:stillrivercode/stillriver-ai-workflows.git
 git checkout main
 git pull upstream main
 ```
@@ -57,7 +57,7 @@ git rebase main
 git push --set-upstream origin 38-add-awesome-new-feature
 ```
 
-Finally, go to GitHub and [make a Pull Request](https://github.com/stillrivercode/stillriver-ai-bot/compare)
+Finally, go to GitHub and [make a Pull Request](https://github.com/stillrivercode/stillriver-ai-workflows/compare)
 
 ### Keeping your Pull Request updated
 
@@ -73,7 +73,7 @@ To learn more about rebasing and merging, check out this guide from Atlassian: [
 - GitHub account
 
 ### Local Development
-1. Clone your fork: `git clone https://github.com/YOUR_USERNAME/stillriver-ai-bot.git`
+1. Clone your fork: `git clone https://github.com/YOUR_USERNAME/stillriver-ai-workflows.git`
 2. Install dependencies: `npm install`
 3. Run tests: `npm test`
 4. Check linting: `npm run lint`
@@ -104,4 +104,4 @@ If you have questions about contributing, feel free to:
 - Start a discussion in the GitHub Discussions tab
 - Review existing documentation in the `docs/` directory
 
-Thank you for contributing to Stillriver AI Bot! 🤖
+Thank you for contributing to Stillriver AI Workflows! 🤖

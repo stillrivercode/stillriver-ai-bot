@@ -1,6 +1,8 @@
-# AI PR Review Action
+# AI Workflows
 
-An AI-powered GitHub Action for automated pull request reviews using OpenRouter.
+An AI-powered GitHub workflow automation tool with Information Dense Keywords integration.
+
+**✨ Now fully integrated and tested with improved workflow reliability!**
 
 **✨ Now fully integrated and tested with improved workflow reliability!**
 
@@ -23,7 +25,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: AI PR Review
-        uses: stillrivercode/stillriver-ai-bot@v1
+        uses: stillrivercode/stillriver-ai-workflows@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}

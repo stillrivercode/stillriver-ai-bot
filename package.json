@@ -1,7 +1,7 @@
 {
-  "name": "@stillrivercode/stillriver-ai-bot",
+  "name": "@stillrivercode/stillriver-ai-workflows",
   "version": "1.0.4",
-  "description": "AI-powered GitHub workflow automation bot with Information Dense Keywords integration",
+  "description": "AI-powered GitHub workflow automation with Information Dense Keywords integration",
   "keywords": [
     "github-actions",
     "ai",
@@ -14,13 +14,13 @@
   ],
   "author": "Stillriver Code <admin@stillriver.info>",
   "license": "MIT",
-  "homepage": "https://github.com/stillrivercode/stillriver-ai-bot#readme",
+  "homepage": "https://github.com/stillrivercode/stillriver-ai-workflows#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stillrivercode/stillriver-ai-bot.git"
+    "url": "git+https://github.com/stillrivercode/stillriver-ai-workflows.git"
   },
   "bugs": {
-    "url": "https://github.com/stillrivercode/stillriver-ai-bot/issues"
+    "url": "https://github.com/stillrivercode/stillriver-ai-workflows/issues"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -69,7 +69,7 @@
     "lint": "eslint --ext .js,.ts,.jsx,.tsx src/ tests/ --fix",
     "lint:yaml": "yamllint -d relaxed *.yml *.yaml .github/workflows/*.yml .github/workflows/*.yaml || echo 'No YAML files to lint'",
     "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'",
-    "setup": "echo 'AI-powered GitHub workflow automation bot' && echo 'Use Information Dense Keywords commands via: npm run idk'",
+    "setup": "echo 'AI-powered GitHub workflow automation' && echo 'Use Information Dense Keywords commands via: npm run idk'",
     "idk": "npx @stillrivercode/information-dense-keywords",
     "idk:update": "npm update @stillrivercode/information-dense-keywords"
   },
