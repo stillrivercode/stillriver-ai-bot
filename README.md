@@ -4,6 +4,8 @@ An AI-powered GitHub workflow automation tool with Information Dense Keywords in
 
 **✨ Now fully integrated and tested with improved workflow reliability!**
 
+**✨ Now fully integrated and tested with improved workflow reliability!**
+
 ## Getting Started
 
 To use this action, create a workflow file (e.g., `.github/workflows/ai-review.yml`) in your repository with the following content:

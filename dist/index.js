@@ -35253,6 +35253,7 @@ async function getReview(openrouterApiKey, changedFiles, model, maxTokens, tempe
     // Process diffs with smart allocation
     const processedDiffs = filteredFiles
         .map((file, index) => {
+        // eslint-disable-next-line security/detect-object-injection
         const originalSize = fileSizes[index];
         let allowedSize;
         if (totalActualSize <= maxCharsTotal * 0.8) {
@@ -35284,6 +35285,7 @@ ${truncatedPatch}
     // Count truncated files from the processing above
     let truncatedCount = 0;
     filteredFiles.forEach((file, index) => {
+        // eslint-disable-next-line security/detect-object-injection
         const originalSize = fileSizes[index];
         let allowedSize;
         if (totalActualSize <= maxCharsTotal * 0.8) {
