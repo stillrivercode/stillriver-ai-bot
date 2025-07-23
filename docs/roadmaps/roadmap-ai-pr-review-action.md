@@ -47,10 +47,10 @@ Transform our internal AI PR review capability into the **leading GitHub Action 
 - **Target**: 50+ community contributions (ongoing)
 
 ### Value Proposition
-- **For Developers**: Instant AI code review with zero configuration complexity
-- **For Teams**: Consistent review quality across all repositories
-- **For Organizations**: Reduced manual review burden and improved code quality
-- **For Ecosystem**: Democratized access to advanced AI review capabilities
+- **For Developers**: Instant AI code review with zero configuration complexity + intentional review workflow through resolvable suggestions
+- **For Teams**: Consistent review quality across all repositories with forced consideration of critical issues
+- **For Organizations**: Reduced manual review burden, improved code quality, and audit trails for AI suggestion handling
+- **For Ecosystem**: Democratized access to advanced AI review capabilities with industry-leading intentional review patterns
 
 ## Roadmap Phases
 
@@ -129,11 +129,18 @@ Transform our internal AI PR review capability into the **leading GitHub Action 
 - **Solution Implemented**: Real-time UTC timestamps in review footers
 - **Impact**: Better tracking and transparency of when reviews were generated
 
+### AI Resolvable Comments Research **🆕**
+- **Research Completed**: Multi-model consensus analysis with Claude Opus 4 and Gemini 2.5 Pro
+- **Technical Specification**: Complete implementation blueprint with 4-tier confidence system
+- **Key Findings**: ≥95% confidence threshold for resolvable suggestions, graduated response architecture
+- **Impact**: Foundation for implementing industry-leading intentional review workflow
+
 ### Technical Improvements
 - **Updated Review Detection**: Modified logic to match new dynamic header format
 - **Enhanced Logging**: More detailed debugging information for troubleshooting
 - **Test Coverage**: Updated test suite to cover new functionality
 - **Documentation**: Comprehensive updates to README and examples
+- **Research Documentation**: Added comprehensive research analysis and technical specification
 
 ### Phase 2: Enhancement (Currently Active)
 **Theme**: User Experience and Advanced Features
@@ -142,44 +149,60 @@ Transform our internal AI PR review capability into the **leading GitHub Action 
 - Enhance usability and configurability based on real-world usage
 - Add advanced features that differentiate from competitors
 - Optimize performance and reliability for production use
+- **NEW**: Implement AI resolvable comments for intentional review workflows
 
 #### Key Initiatives
 
-1. **User Experience Improvements** (Priority: High)
+1. **AI Resolvable Comments Implementation** (Priority: Critical) **🆕**
+   - Implement resolvable AI suggestions using GitHub's native suggestion format
+   - Deploy 4-tier confidence threshold system (≥95% resolvable, 80-94% enhanced, 65-79% regular, <65% suppressed)
+   - Create quality control mechanisms with dynamic threshold optimization
+   - Add graduated response architecture for different suggestion types
+   - Implement maximum 3-5 resolvable suggestions per PR to prevent developer fatigue
+
+2. **User Experience Improvements** (Priority: High)
    - Implement preset configuration templates
    - Add interactive setup wizard for complex configurations
    - Create visual feedback improvements (progress indicators, detailed status)
    - Implement advanced error reporting and debugging information
+   - **Enhanced**: Design differentiated UI for resolvable vs. regular comments
 
-2. **Advanced Feature Development** (Priority: Medium)
+3. **Advanced Feature Development** (Priority: Medium)
    - Multi-repository review support for monorepos
    - Custom review templates and criteria
    - Integration with popular CI/CD tools
    - Advanced analytics and metrics collection
+   - **Enhanced**: Track resolvable comment acceptance rates and developer engagement
 
-3. **Performance Optimization** (Priority: Medium)
+4. **Performance Optimization** (Priority: Medium)
    - Implement intelligent diff chunking for large PRs
    - Add caching layers for repeated operations
    - Optimize API request patterns to reduce latency
    - Implement progressive review for very large changes
+   - **Enhanced**: Optimize confidence scoring algorithms for real-time performance
 
-4. **Security and Compliance** (Priority: High)
+5. **Security and Compliance** (Priority: High)
    - Comprehensive security audit and penetration testing
    - Implement input validation and sanitization
    - Add compliance reporting for enterprise users
    - Create security best practices documentation
 
 #### Deliverables
-- Enhanced user interface with preset configurations
-- Advanced features for complex use cases
+- **NEW**: AI resolvable comments feature with 4-tier confidence system
+- **NEW**: Quality control mechanisms and dynamic threshold optimization
+- Enhanced user interface with preset configurations and differentiated comment types
+- Advanced features for complex use cases with engagement tracking
 - Performance benchmarks and optimization results
 - Security audit report and compliance documentation
 
 #### Success Criteria
+- **NEW**: 85-95% acceptance rate for resolvable (≥95% confidence) suggestions
+- **NEW**: 60-75% engagement rate for enhanced (80-94% confidence) comments
+- **NEW**: <10% false positive rate for resolvable suggestions
 - 50+ repositories actively using the action
 - Average review time under 90 seconds
 - Zero critical security vulnerabilities
-- Positive user feedback on ease of use
+- Positive user feedback on ease of use and intentional review workflow
 
 ### Phase 3: Scale (Months 7-12)
 **Theme**: Marketplace Success and Enterprise Features
@@ -236,14 +259,15 @@ Q1 2024         Q2 2024         Q3 2024         Q4 2024         Q1 2025
 │   ✅ DONE     │   🔄 ACTIVE   │   📋 PLANNED             │              │
 ├── Extract ✅  ├── UX Improve  ├── Marketplace           │ Recent       │
 ├── Modularize✅├── Advanced    ├── Enterprise            │ Improvements │
-└── Document ✅ └── Optimize    └── Community             │ - Truncation │
-                                                           │ - Headers    │
+└── Document ✅ ├── Resolvable✅ └── Community             │ - Truncation │
+                └── Optimize                               │ - Headers    │
                                                            │ - Timestamps │
+                                                           │ - Research ✅ │
 ```
 
 **Current Status (January 2025)**:
 - ✅ **Phase 1 Complete**: Full GitHub Action with marketplace publication
-- 🔄 **Phase 2 Active**: Recent major improvements implemented
+- 🔄 **Phase 2 Active**: Recent major improvements + AI resolvable comments research complete
 - 📋 **Phase 3 Planning**: Preparing for scale and enterprise features
 
 ## Dependencies and Prerequisites
@@ -387,5 +411,13 @@ This roadmap follows the **IDK (Information Dense Keywords)** framework:
 - **`optimize this [performance]`**: Implement Phase 2 performance improvements
 - **`document this [action]`**: Create comprehensive documentation throughout all phases
 - **`test this [action]`**: Develop test suites for reliability validation
+- **`spec this [resolvable-comments]`**: Execute AI resolvable comments implementation
+- **`research this [confidence-scoring]`**: Deep dive into confidence threshold optimization
 
-This roadmap serves as the strategic foundation for transforming our internal AI PR review capability into a market-leading GitHub Action that democratizes AI-powered code review across the developer community.
+### Recent Research Integration
+This roadmap has been enhanced with findings from comprehensive multi-model research:
+- **Research Document**: [AI Resolvable Comments Research Analysis](../research/ai-resolvable-comments-analysis.md)
+- **Technical Specification**: [AI Resolvable Comments Technical Spec](../specs/ai-resolvable-comments-spec.md)
+- **Strategic Impact**: Positions the action as industry-leading with intentional review workflow patterns
+
+This roadmap serves as the strategic foundation for transforming our internal AI PR review capability into a market-leading GitHub Action that democratizes AI-powered code review across the developer community, now enhanced with cutting-edge resolvable comment capabilities.
