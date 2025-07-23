@@ -95,5 +95,4 @@ The action sets the `review_status` output to indicate the result:
 
 ## Contributing
 
-
 Contributions are welcome! Please see `CONTRIBUTING.md` for more information.
