@@ -164,5 +164,26 @@ The core logic will be modularized into several TypeScript files within the `src
 -   [x] Automated build and release pipeline using `ncc`.
 -   [x] Complete documentation suite (`README.md`, `SECURITY.md`).
 -   [x] A dedicated `examples/` directory with well-documented examples.
+-   [x] **Comment posting integration**: Moved from workflow to TypeScript action with dynamic headers and truncation handling.
+-   [x] **Smart deduplication**: Prevents duplicate reviews when AI reviews already exist.
+-   [x] **Enhanced error handling**: Robust failure modes and status reporting.
+-   [x] **Version management**: Proper tagging and release automation with v1.0.8.
 -   [ ] A dedicated test repository demonstrating the action's usage and validating its functionality.
 -   [ ] Unit test suite with at least 80% code coverage.
+
+## 9. Recent Achievements (v1.0.8)
+
+### Comment Management Consolidation
+- **Moved comment posting logic from workflow to TypeScript action**: Eliminated redundant GitHub Actions script step
+- **Dynamic model headers**: Comments now display the actual AI model used (e.g., "AI Review by Gemini 2.5 Pro")
+- **Intelligent truncation**: Automatic handling of GitHub's comment length limits with clear truncation messaging
+- **UTC timestamps**: All comments include generation time for better tracking
+
+### Enhanced Reliability
+- **Removed `dist/` from `.gitignore`**: Ensures compiled action is always available
+- **Post-comment parameter**: New `post_comment` input (default: true) for flexible comment handling
+- **Improved error handling**: Comment posting failures don't break the action, outputs remain available
+
+### Distribution Improvements
+- **Automated versioning**: GitHub Actions workflow for version bumping and tagging
+- **Clean build process**: Streamlined compilation with proper source maps and licensing
