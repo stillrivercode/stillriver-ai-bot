@@ -71,7 +71,11 @@ class AnalysisOrchestrator {
         console.log('✅ No issues found by AI analysis');
 
         // Post summary comment when no suggestions found
-        await this.postNoSuggestionsComment(prNumber, prData, analysisFiles.length);
+        await this.postNoSuggestionsComment(
+          prNumber,
+          prData,
+          analysisFiles.length
+        );
 
         return [];
       }
@@ -135,9 +139,10 @@ class AnalysisOrchestrator {
         );
 
         // Extract numeric score from result object
-        const confidenceScore = typeof confidenceResult === 'object'
-          ? confidenceResult.score
-          : confidenceResult;
+        const confidenceScore =
+          typeof confidenceResult === 'object'
+            ? confidenceResult.score
+            : confidenceResult;
 
         // Add confidence score and additional metadata
         const scoredSuggestion = {
@@ -368,7 +373,9 @@ class AnalysisOrchestrator {
   async postNoSuggestionsComment(prNumber, prData, filesAnalyzed) {
     try {
       const inlineEnabled = process.env.AI_ENABLE_INLINE_COMMENTS !== 'false';
-      const reviewType = inlineEnabled ? 'Resolvable Comments' : 'Enhanced Comments';
+      const reviewType = inlineEnabled
+        ? 'Resolvable Comments'
+        : 'Enhanced Comments';
 
       const summaryComment = `## 🤖 AI Review by ${reviewType}
 
@@ -409,7 +416,12 @@ The code changes in this pull request meet quality standards and are ready for h
       const stats = this.generateStatistics(suggestions);
 
       // Generate summary comment with statistics
-      const summaryComment = this.generateSummaryComment(suggestions, stats, inlineEnabled, prData);
+      const summaryComment = this.generateSummaryComment(
+        suggestions,
+        stats,
+        inlineEnabled,
+        prData
+      );
 
       // Always post summary comment first for visibility
       await this.github.postComment(prNumber, summaryComment);
@@ -427,7 +439,9 @@ The code changes in this pull request meet quality standards and are ready for h
             console.warn(`Failed to post inline comment: ${error.message}`);
           }
         }
-        console.log(`✅ Posted ${inlineComments.length} inline resolvable suggestions`);
+        console.log(
+          `✅ Posted ${inlineComments.length} inline resolvable suggestions`
+        );
       } else {
         // Post detailed suggestions in a separate comment
         const detailsComment = this.formatSuggestionsAsComment(suggestions);
@@ -444,7 +458,9 @@ The code changes in this pull request meet quality standards and are ready for h
    * Generate summary comment header
    */
   generateSummaryComment(suggestions, stats, inlineEnabled, prData) {
-    const reviewType = inlineEnabled ? 'Resolvable Comments' : 'Enhanced Comments';
+    const reviewType = inlineEnabled
+      ? 'Resolvable Comments'
+      : 'Enhanced Comments';
     const hasResolvable = stats.by_confidence.very_high > 0;
 
     let summary = `## 🤖 AI Review by ${reviewType}\n\n`;
@@ -495,7 +511,12 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
     for (const suggestion of suggestions) {
       if (suggestion.confidence >= 0.95 && resolvableCount < resolvableLimit) {
         // Generate resolvable suggestion only if we have required fields
-        if (suggestion.line_number && suggestion.suggestedCode && suggestion.originalCode && suggestion.file_path) {
+        if (
+          suggestion.line_number &&
+          suggestion.suggestedCode &&
+          suggestion.originalCode &&
+          suggestion.file_path
+        ) {
           inlineComments.push({
             path: suggestion.file_path,
             line: suggestion.line_number,
@@ -505,7 +526,7 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
 ${suggestion.suggestedCode}
 \`\`\`
 
-**Confidence**: ${Math.round(suggestion.confidence * 100)}% | **Category**: ${suggestion.category}`
+**Confidence**: ${Math.round(suggestion.confidence * 100)}% | **Category**: ${suggestion.category}`,
           });
           resolvableCount++;
         }
@@ -522,13 +543,23 @@ ${suggestion.suggestedCode}
     let comment = '## 📋 Detailed Suggestions\n\n';
 
     for (const suggestion of suggestions) {
-      const icon = suggestion.confidence >= 0.95 ? '🔒' :
-                   suggestion.confidence >= 0.8 ? '⚡' :
-                   suggestion.confidence >= 0.65 ? '💡' : 'ℹ️';
+      const icon =
+        suggestion.confidence >= 0.95
+          ? '🔒'
+          : suggestion.confidence >= 0.8
+            ? '⚡'
+            : suggestion.confidence >= 0.65
+              ? '💡'
+              : 'ℹ️';
 
-      const confidenceLevel = suggestion.confidence >= 0.95 ? 'Critical' :
-                             suggestion.confidence >= 0.8 ? 'High' :
-                             suggestion.confidence >= 0.65 ? 'Medium' : 'Low';
+      const confidenceLevel =
+        suggestion.confidence >= 0.95
+          ? 'Critical'
+          : suggestion.confidence >= 0.8
+            ? 'High'
+            : suggestion.confidence >= 0.65
+              ? 'Medium'
+              : 'Low';
 
       comment += `### ${icon} ${confidenceLevel}: ${suggestion.description}\n\n`;
 

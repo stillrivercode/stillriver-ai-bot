@@ -3,10 +3,7 @@ module.exports = {
   testEnvironment: 'node',
 
   // Test patterns
-  testMatch: [
-    '**/tests/**/*.test.js',
-    '**/tests/**/*.test.ts'
-  ],
+  testMatch: ['**/tests/**/*.test.js', '**/tests/**/*.test.ts'],
 
   // Coverage configuration
   collectCoverageFrom: [
@@ -14,13 +11,13 @@ module.exports = {
     'scripts/ai-review/**/*.js',
     '!src/**/*.d.ts',
     '!scripts/ai-review/test-*.js',
-    '!**/node_modules/**'
+    '!**/node_modules/**',
   ],
 
   // Transform configuration
   transform: {
     '^.+\\.ts$': 'ts-jest',
-    '^.+\\.js$': 'babel-jest'
+    '^.+\\.js$': 'babel-jest',
   },
 
   // Module file extensions
@@ -33,5 +30,5 @@ module.exports = {
   testTimeout: 10000,
 
   // Verbose output
-  verbose: true
+  verbose: true,
 };

@@ -237,7 +237,9 @@ class GitHubAPIService {
 
       return { success: true, output: response.trim() };
     } catch (error) {
-      throw new Error(`Failed to post comment to PR ${prNumber}: ${error.message}`);
+      throw new Error(
+        `Failed to post comment to PR ${prNumber}: ${error.message}`
+      );
     }
   }
 
@@ -258,13 +260,13 @@ class GitHubAPIService {
       // For inline comments, we need to create review comments
       // This is more complex and requires the GitHub API directly
       const reviewData = {
-        body: body,
+        body,
         event: 'COMMENT',
         comments: comments.map(comment => ({
           path: comment.path,
           position: comment.position,
-          body: comment.body
-        }))
+          body: comment.body,
+        })),
       };
 
       const response = this.callGitHubAPI(
@@ -276,7 +278,9 @@ class GitHubAPIService {
       return response;
     } catch (error) {
       // Fallback to regular comment if review fails
-      console.warn(`Review comment failed, falling back to regular comment: ${error.message}`);
+      console.warn(
+        `Review comment failed, falling back to regular comment: ${error.message}`
+      );
       return this.postComment(prNumber, body);
     }
   }
@@ -290,7 +294,9 @@ class GitHubAPIService {
   async postInlineComment(prNumber, comment) {
     try {
       // Use gh CLI to post review comment on specific line
-      const escapedBody = comment.body.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+      const escapedBody = comment.body
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n');
       const command = `gh pr comment ${prNumber} --body "${escapedBody}"`;
 
       const response = execSync(command, {
@@ -303,7 +309,9 @@ class GitHubAPIService {
 
       return { success: true, output: response.trim() };
     } catch (error) {
-      throw new Error(`Failed to post inline comment to PR ${prNumber}: ${error.message}`);
+      throw new Error(
+        `Failed to post inline comment to PR ${prNumber}: ${error.message}`
+      );
     }
   }
 
