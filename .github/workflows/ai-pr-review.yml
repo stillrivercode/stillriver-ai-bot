@@ -200,7 +200,7 @@ jobs:
           export HEAD_SHA="${{ github.event.pull_request.head.sha }}"
 
           # Run the AI resolvable comments analysis
-          if ./scripts/ai-review-resolvable.sh analyze --pr-number="$PR_NUMBER" --base-sha="$BASE_SHA" --head-sha="$HEAD_SHA"; then
+          if ./scripts/ai-review-resolvable.sh analyze "$PR_NUMBER"; then
             echo "review_status=success" >> $GITHUB_OUTPUT
             echo "✅ AI Review with resolvable comments completed successfully"
           else
