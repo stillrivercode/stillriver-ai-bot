@@ -7,6 +7,7 @@
  * and analyze pull request changes
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs').promises;
@@ -17,7 +18,10 @@ class AIAnalysisService {
     this.model = options.model || 'anthropic/claude-3.5-sonnet';
     this.maxTokens = options.maxTokens || 4000;
     this.temperature = options.temperature || 0.1;
-    this.openRouterScript = path.join(__dirname, '../../lib/openrouter-client.sh');
+    this.openRouterScript = path.join(
+      __dirname,
+      '../../lib/openrouter-client.sh'
+    );
 
     if (!this.apiKey) {
       throw new Error('OPENROUTER_API_KEY is required');
@@ -39,7 +43,7 @@ class AIAnalysisService {
         const fileSuggestions = await this.analyzeFile(file, context);
         suggestions.push(...fileSuggestions);
       } catch (error) {
-        console.error('Error analyzing file %s:', file.filename, error);
+        console.error('Error analyzing file:', file.filename, error);
       }
     }
 
@@ -119,6 +123,7 @@ For subjective style preferences or speculative optimizations, do not include th
   async callOpenRouter(prompt) {
     // Create a temporary file for the prompt to handle complex content
     const tmpPromptFile = `/tmp/ai-review-prompt-${Date.now()}.txt`;
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     await fs.writeFile(tmpPromptFile, prompt);
 
     try {
@@ -142,7 +147,7 @@ For subjective style preferences or speculative optimizations, do not include th
       const response = execSync(command, {
         shell: '/bin/bash',
         encoding: 'utf8',
-        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
       });
 
       return response.trim();
@@ -152,8 +157,9 @@ For subjective style preferences or speculative optimizations, do not include th
     } finally {
       // Clean up temp file
       try {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
         await fs.unlink(tmpPromptFile);
-      } catch (e) {
+      } catch {
         // Ignore cleanup errors
       }
     }
@@ -177,7 +183,7 @@ For subjective style preferences or speculative optimizations, do not include th
       }
 
       return parsed.suggestions;
-    } catch (error) {
+    } catch {
       // Try to extract suggestions from non-JSON response
       console.warn('Failed to parse JSON, attempting text extraction');
       return this.extractSuggestionsFromText(response);
@@ -193,15 +199,19 @@ For subjective style preferences or speculative optimizations, do not include th
     // Simple pattern matching for common issue indicators
     const patterns = [
       {
-        regex: /(?:security\s+(?:vulnerability|issue)|sql\s+injection|xss|csrf).*?(?:line\s+(\d+))?/gi,
+        // eslint-disable-next-line security/detect-unsafe-regex
+        regex:
+          /(?:security\s+(?:vulnerability|issue)|sql\s+injection|xss|csrf).*?(?:line\s+(\d+))?/gi,
         severity: 'critical',
-        category: 'security'
+        category: 'security',
       },
       {
-        regex: /(?:null\s+pointer|undefined\s+access|type\s+error).*?(?:line\s+(\d+))?/gi,
+        // eslint-disable-next-line security/detect-unsafe-regex
+        regex:
+          /(?:null\s+pointer|undefined\s+access|type\s+error).*?(?:line\s+(\d+))?/gi,
         severity: 'high',
-        category: 'type-safety'
-      }
+        category: 'type-safety',
+      },
     ];
 
     for (const pattern of patterns) {
@@ -213,7 +223,7 @@ For subjective style preferences or speculative optimizations, do not include th
           severity: pattern.severity,
           category: pattern.category,
           line: match[1] ? parseInt(match[1]) : null,
-          confidence: 'possible'
+          confidence: 'possible',
         });
       }
     }
@@ -231,7 +241,7 @@ For subjective style preferences or speculative optimizations, do not include th
       commit: file.commit || null,
       path: file.filename,
       position: this.calculatePosition(file.patch, suggestion.line),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }));
   }
 
@@ -239,7 +249,9 @@ For subjective style preferences or speculative optimizations, do not include th
    * Calculate diff position for GitHub API
    */
   calculatePosition(patch, lineNumber) {
-    if (!patch || !lineNumber) return null;
+    if (!patch || !lineNumber) {
+      return null;
+    }
 
     const lines = patch.split('\n');
     let currentLine = 0;
@@ -277,9 +289,14 @@ For subjective style preferences or speculative optimizations, do not include th
       const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
       const confidenceOrder = { definitive: 0, probable: 1, possible: 2 };
 
-      const severityDiff = severityOrder[a.severity] - severityOrder[b.severity];
-      if (severityDiff !== 0) return severityDiff;
+      // eslint-disable-next-line security/detect-object-injection
+      const severityDiff =
+        severityOrder[a.severity] - severityOrder[b.severity];
+      if (severityDiff !== 0) {
+        return severityDiff;
+      }
 
+      // eslint-disable-next-line security/detect-object-injection
       return confidenceOrder[a.confidence] - confidenceOrder[b.confidence];
     });
 
@@ -331,7 +348,7 @@ For subjective style preferences or speculative optimizations, do not include th
 - Inefficient algorithms (O(n²) or worse)
 - Memory leaks
 - Unnecessary re-renders or computations
-- Database query optimization`
+- Database query optimization`,
     };
 
     return prompts[issueType] || prompts.security;
