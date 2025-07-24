@@ -258,6 +258,7 @@ For subjective style preferences or speculative optimizations, do not include th
     let position = 0;
 
     for (let i = 0; i < lines.length; i++) {
+      // eslint-disable-next-line security/detect-object-injection
       const line = lines[i];
 
       if (line.startsWith('@@')) {
@@ -351,6 +352,7 @@ For subjective style preferences or speculative optimizations, do not include th
 - Database query optimization`,
     };
 
+    // eslint-disable-next-line security/detect-object-injection
     return prompts[issueType] || prompts.security;
   }
 }
