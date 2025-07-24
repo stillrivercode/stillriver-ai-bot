@@ -146,6 +146,7 @@ The repository now includes an advanced AI review system that generates GitHub's
 - **Resolvable Comments**: High-confidence suggestions (≥95%) become GitHub's native resolvable suggestions
 - **Enhanced Comments**: Medium-confidence suggestions (80-94%) provide detailed context
 - **Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent spam
+- **Configurable Inline Comments**: Enable/disable resolvable suggestions via environment variables
 - **Integration**: Seamlessly integrated with existing AI PR Review workflow
 
 ### Confidence Thresholds
@@ -155,12 +156,38 @@ The repository now includes an advanced AI review system that generates GitHub's
 - **65-79%**: Regular informational comment
 - **<65%**: Suppressed or aggregated into summary
 
+### Configuration
+
+The AI resolvable comments system can be configured via environment variables:
+
+#### Environment Variables
+- `AI_ENABLE_INLINE_COMMENTS` - Enable/disable GitHub's native resolvable suggestions (default: `true`)
+  - `true`: High-confidence suggestions become resolvable with one-click application
+  - `false`: All suggestions use enhanced format without inline resolution
+
+#### Repository Variables (GitHub Settings > Variables)
+- `AI_ENABLE_INLINE_COMMENTS` - Repository-level control over inline comments
+- `AI_REVIEW_RATE_LIMIT_MINUTES` - Rate limit for AI reviews (default: 1 minute)
+
+#### Script Options
+```bash
+# Enable inline comments (default)
+./scripts/ai-review-resolvable.sh analyze 123
+
+# Disable inline comments
+AI_ENABLE_INLINE_COMMENTS=false ./scripts/ai-review-resolvable.sh analyze 123
+
+# Format script options
+./scripts/ai-review/format-suggestions.sh --enable-inline true
+./scripts/ai-review/format-suggestions.sh --disable-inline
+```
+
 ### Workflow Integration
 
 The AI PR Review workflow (`ai-pr-review.yml`) automatically uses the resolvable comments system:
 1. Analyzes PR changes with OpenRouter API
 2. Applies confidence scoring to each suggestion
-3. Posts suggestions as GitHub resolvable comments based on confidence level
+3. Posts suggestions as GitHub resolvable comments based on confidence level (configurable)
 4. Adds `ai-reviewed-resolvable` label to indicate completion
 
 ## Development Notes

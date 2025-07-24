@@ -71,6 +71,7 @@ The repository includes an advanced AI review system that generates GitHub's nat
 *   **Native GitHub Integration:** High-confidence suggestions (≥95%) become GitHub's resolvable suggestions with one-click application
 *   **Intelligent Rate Limiting:** Maximum 5 resolvable suggestions per PR to prevent cognitive overload
 *   **Graduated Response:** Different presentation formats based on confidence levels (resolvable, enhanced, regular, suppressed)
+*   **Configurable Inline Comments:** Enable/disable GitHub's native resolvable suggestions via environment variables
 
 ### Confidence Thresholds
 
@@ -79,12 +80,31 @@ The repository includes an advanced AI review system that generates GitHub's nat
 *   **65-79% (Regular):** Medium-confidence informational comments
 *   **<65% (Suppressed):** Low-confidence suggestions aggregated into summary
 
+### Configuration Options
+
+The AI resolvable comments system supports flexible configuration:
+
+**Environment Variables:**
+- `AI_ENABLE_INLINE_COMMENTS=true|false` - Control GitHub's native resolvable suggestions
+- `AI_REVIEW_RATE_LIMIT_MINUTES=1` - Rate limit between AI reviews
+
+**Usage Examples:**
+```bash
+# Default behavior (inline comments enabled)
+npm run ai-review-analyze -- 123
+
+# Disable inline comments
+AI_ENABLE_INLINE_COMMENTS=false npm run ai-review-analyze -- 123
+
+# Repository-level configuration via GitHub Variables
+```
+
 ### Workflow Integration
 
 The AI PR Review workflow automatically:
 1. Analyzes pull request changes using OpenRouter API
 2. Applies multi-factor confidence scoring to each suggestion
-3. Posts suggestions as GitHub resolvable comments based on confidence
+3. Posts suggestions as GitHub resolvable comments based on confidence (configurable)
 4. Adds `ai-reviewed-resolvable` label for tracking
 
 ## Usage Examples

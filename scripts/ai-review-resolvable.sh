@@ -165,6 +165,7 @@ cmd_analyze() {
             --max-resolvable "$MAX_RESOLVABLE" \
             --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
             --threshold-enhanced "$THRESHOLD_ENHANCED" \
+            --enable-inline "${AI_ENABLE_INLINE_COMMENTS:-true}" \
             ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
 
         # Show statistics
@@ -185,6 +186,7 @@ cmd_analyze() {
             --max-resolvable "$MAX_RESOLVABLE" \
             --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
             --threshold-enhanced "$THRESHOLD_ENHANCED" \
+            --enable-inline "${AI_ENABLE_INLINE_COMMENTS:-true}" \
             ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
     fi
 

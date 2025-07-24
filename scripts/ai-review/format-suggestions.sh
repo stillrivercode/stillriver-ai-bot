@@ -21,6 +21,7 @@ CONFIDENCE_THRESHOLD_ENHANCED=0.80
 CONFIDENCE_THRESHOLD_REGULAR=0.65
 MAX_RESOLVABLE_PER_PR=5
 FORMAT_TYPE="individual"  # individual, batch, summary
+ENABLE_INLINE_COMMENTS="${AI_ENABLE_INLINE_COMMENTS:-true}"  # Enable/disable inline resolvable comments
 
 # Confidence level icons
 ICON_CRITICAL="🔒"
@@ -43,7 +44,12 @@ Options:
     --threshold-resolvable NUM    Confidence threshold for resolvable (default: 0.95)
     --threshold-enhanced NUM      Confidence threshold for enhanced (default: 0.80)
     --threshold-regular NUM       Confidence threshold for regular (default: 0.65)
+    --enable-inline BOOL          Enable inline resolvable comments (default: true)
+    --disable-inline              Disable inline resolvable comments (force to enhanced)
     -h, --help                    Display this help message
+
+Environment Variables:
+    AI_ENABLE_INLINE_COMMENTS     Enable/disable inline comments (true/false, default: true)
 
 Example:
     $0 -i suggestions.json -o formatted.md -t batch
@@ -81,6 +87,14 @@ parse_arguments() {
             --threshold-regular)
                 CONFIDENCE_THRESHOLD_REGULAR="$2"
                 shift 2
+                ;;
+            --enable-inline)
+                ENABLE_INLINE_COMMENTS="$2"
+                shift 2
+                ;;
+            --disable-inline)
+                ENABLE_INLINE_COMMENTS="false"
+                shift
                 ;;
             -h|--help)
                 usage
@@ -263,19 +277,29 @@ format_batch_summary() {
     local enhanced_count=$2
     local regular_count=$3
     local suppressed_count=$4
+    local inline_enabled=${5:-true}
     local total_count=$((resolvable_count + enhanced_count + regular_count + suppressed_count))
+
+    # Adjust labels based on inline comments setting
+    local critical_label="Critical (Resolvable)"
+    local critical_action="Apply all ${resolvable_count} resolvable suggestions"
+
+    if [[ "$inline_enabled" == "false" ]]; then
+        critical_label="Critical (Enhanced)"
+        critical_action="Review all ${resolvable_count} critical suggestions"
+    fi
 
     cat << EOF
 ## 🤖 AI Review Summary
 
-**Total Suggestions**: ${total_count}
-- ${ICON_CRITICAL} **Critical (Resolvable)**: ${resolvable_count} - Action required
+**Total Suggestions**: ${total_count}$(if [[ "$inline_enabled" == "false" ]]; then echo " (Inline comments disabled)"; fi)
+- ${ICON_CRITICAL} **${critical_label}**: ${resolvable_count} - Action required
 - ${ICON_HIGH} **High Confidence**: ${enhanced_count} - Recommended improvements
 - ${ICON_MEDIUM} **Medium Confidence**: ${regular_count} - Consider these insights
 - ${ICON_INFO} **Low Confidence**: ${suppressed_count} - Additional thoughts (collapsed)
 
 ### Quick Actions
-- [ **Accept All Critical** ] - Apply all ${resolvable_count} resolvable suggestions
+- [ **Accept All Critical** ] - ${critical_action}
 - [ **Review by Category** ] - Filter suggestions by type
 - [ **Export Report** ] - Download full analysis
 
@@ -290,17 +314,32 @@ process_individual() {
     local output=""
     local resolvable_count=0
 
+    # Check if inline comments are enabled
+    local inline_enabled="true"
+    if [[ "${ENABLE_INLINE_COMMENTS}" == "false" ]] || [[ "${ENABLE_INLINE_COMMENTS}" == "0" ]]; then
+        inline_enabled="false"
+    fi
+
     # Separate suggestions by confidence level
     local resolvable=$(echo "$suggestions" | jq -c "[.[] | select(.confidence >= $CONFIDENCE_THRESHOLD_RESOLVABLE)] | sort_by(.confidence) | reverse | .[:$MAX_RESOLVABLE_PER_PR]")
     local enhanced=$(echo "$suggestions" | jq -c "[.[] | select(.confidence >= $CONFIDENCE_THRESHOLD_ENHANCED and .confidence < $CONFIDENCE_THRESHOLD_RESOLVABLE)]")
     local regular=$(echo "$suggestions" | jq -c "[.[] | select(.confidence >= $CONFIDENCE_THRESHOLD_REGULAR and .confidence < $CONFIDENCE_THRESHOLD_ENHANCED)]")
     local suppressed=$(echo "$suggestions" | jq -c "[.[] | select(.confidence < $CONFIDENCE_THRESHOLD_REGULAR)]")
 
-    # Format resolvable suggestions
-    echo "$resolvable" | jq -c '.[]' | while read -r suggestion; do
-        format_resolvable_suggestion "$suggestion"
-        ((resolvable_count++))
-    done
+    # Format resolvable suggestions (or enhanced if inline disabled)
+    if [[ "$inline_enabled" == "true" ]]; then
+        # Use resolvable suggestion format with inline comments
+        echo "$resolvable" | jq -c '.[]' | while read -r suggestion; do
+            format_resolvable_suggestion "$suggestion"
+            ((resolvable_count++))
+        done
+    else
+        # Disable inline comments - treat resolvable as enhanced
+        info "ℹ️  Inline comments disabled - converting resolvable suggestions to enhanced format"
+        echo "$resolvable" | jq -c '.[]' | while read -r suggestion; do
+            format_enhanced_comment "$suggestion"
+        done
+    fi
 
     # Format enhanced comments
     echo "$enhanced" | jq -c '.[]' | while read -r suggestion; do
@@ -320,6 +359,12 @@ process_individual() {
 process_batch() {
     local suggestions="$1"
 
+    # Check if inline comments are enabled
+    local inline_enabled="true"
+    if [[ "${ENABLE_INLINE_COMMENTS}" == "false" ]] || [[ "${ENABLE_INLINE_COMMENTS}" == "0" ]]; then
+        inline_enabled="false"
+    fi
+
     # Count suggestions by type
     local resolvable_suggestions=$(echo "$suggestions" | jq "[.[] | select(.confidence >= $CONFIDENCE_THRESHOLD_RESOLVABLE)] | sort_by(.confidence) | reverse | .[:$MAX_RESOLVABLE_PER_PR]")
     local resolvable_count=$(echo "$resolvable_suggestions" | jq length)
@@ -328,7 +373,7 @@ process_batch() {
     local suppressed_count=$(echo "$suggestions" | jq "[.[] | select(.confidence < $CONFIDENCE_THRESHOLD_REGULAR)] | length")
 
     # Format batch summary
-    format_batch_summary "$resolvable_count" "$enhanced_count" "$regular_count" "$suppressed_count"
+    format_batch_summary "$resolvable_count" "$enhanced_count" "$regular_count" "$suppressed_count" "$inline_enabled"
 
     # Then process individual suggestions
     process_individual "$suggestions"
