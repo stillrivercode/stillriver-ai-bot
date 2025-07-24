@@ -4,6 +4,7 @@ name: AI PR Review
 # Centralized timeout configuration
 env:
   AI_EXECUTION_TIMEOUT_MINUTES: ${{ vars.AI_EXECUTION_TIMEOUT_MINUTES || '10' }}
+  AI_REVIEW_RATE_LIMIT_MINUTES: ${{ vars.AI_REVIEW_RATE_LIMIT_MINUTES || '1' }}
 
 # Triggers:
 # - When a PR is first opened or moves from draft to ready for review
@@ -84,12 +85,13 @@ jobs:
               per_page: 100
             });
 
-            // Check if there's a recent AI review (within last 5 minutes)
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            // Check if there's a recent AI review (configurable rate limit)
+            const rateLimitMinutes = parseInt(process.env.AI_REVIEW_RATE_LIMIT_MINUTES || '1');
+            const rateLimitAgo = new Date(Date.now() - rateLimitMinutes * 60 * 1000);
             const recentAIReview = comments.data.find(comment =>
               comment.user.login === 'github-actions[bot]' &&
               comment.body.includes('🤖 AI Review by') &&
-              new Date(comment.created_at) > fiveMinutesAgo
+              new Date(comment.created_at) > rateLimitAgo
             );
 
             if (recentAIReview) {
