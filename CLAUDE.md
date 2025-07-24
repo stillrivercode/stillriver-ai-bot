@@ -28,11 +28,16 @@ npm run idk:update          # Update IDK package
 
 # AI Review System (Resolvable Comments)
 npm run ai-review-resolvable                        # Complete AI review workflow with resolvable comments
+npm run ai-review-analyze                           # Analyze code changes and generate suggestions
+npm run ai-review-demo                              # Run demonstration of suggestion formatting
 npm run ai-review                                   # Format AI suggestions with confidence levels
 npm run ai-review-validate                          # Validate AI suggestion JSON format
-./scripts/ai-review-resolvable.sh                  # Direct access to complete workflow
-./scripts/ai-review/format-suggestions.sh          # Direct access to suggestion formatter
-./scripts/ai-review/validate-suggestions.sh        # Direct access to suggestion validator
+
+# Direct script access
+./scripts/ai-review-resolvable.sh analyze          # Analyze PR and post resolvable comments
+./scripts/ai-review-resolvable.sh format           # Format suggestions by confidence level
+./scripts/ai-review-resolvable.sh validate         # Validate suggestion structure
+./scripts/ai-review-resolvable.sh demo             # Show formatting examples
 ```
 
 ## Information Dense Keywords (IDK) Commands
@@ -130,6 +135,33 @@ The system responds to GitHub issues with specific labels:
 - `inquirer` - Interactive prompts
 - `chalk` - Terminal output formatting
 - `fs-extra` - File system utilities
+
+## AI Resolvable Comments System
+
+The repository now includes an advanced AI review system that generates GitHub's native resolvable suggestions. This system transforms AI feedback into actionable, one-click applicable code changes.
+
+### Key Features
+
+- **Confidence-Based Suggestions**: Uses multi-factor scoring algorithm (Issue Severity 40%, Static Analysis 30%, Code Context 20%, Historical Patterns 10%)
+- **Resolvable Comments**: High-confidence suggestions (≥95%) become GitHub's native resolvable suggestions
+- **Enhanced Comments**: Medium-confidence suggestions (80-94%) provide detailed context
+- **Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent spam
+- **Integration**: Seamlessly integrated with existing AI PR Review workflow
+
+### Confidence Thresholds
+
+- **≥95%**: Resolvable suggestion (critical issues only)
+- **80-94%**: Enhanced comment with suggestion context
+- **65-79%**: Regular informational comment
+- **<65%**: Suppressed or aggregated into summary
+
+### Workflow Integration
+
+The AI PR Review workflow (`ai-pr-review.yml`) automatically uses the resolvable comments system:
+1. Analyzes PR changes with OpenRouter API
+2. Applies confidence scoring to each suggestion
+3. Posts suggestions as GitHub resolvable comments based on confidence level
+4. Adds `ai-reviewed-resolvable` label to indicate completion
 
 ## Development Notes
 

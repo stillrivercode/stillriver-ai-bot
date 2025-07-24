@@ -74,7 +74,9 @@
     "idk:update": "npm update @stillrivercode/information-dense-keywords",
     "ai-review": "./scripts/ai-review/format-suggestions.sh",
     "ai-review-validate": "./scripts/ai-review/validate-suggestions.sh",
-    "ai-review-resolvable": "./scripts/ai-review-resolvable.sh"
+    "ai-review-resolvable": "./scripts/ai-review-resolvable.sh",
+    "ai-review-demo": "./scripts/ai-review-resolvable.sh demo",
+    "ai-review-analyze": "./scripts/ai-review-resolvable.sh analyze"
   },
   "main": "package.json"
 }
