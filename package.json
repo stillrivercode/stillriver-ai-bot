@@ -71,7 +71,10 @@
     "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'",
     "setup": "echo 'AI-powered GitHub workflow automation' && echo 'Use Information Dense Keywords commands via: npm run idk'",
     "idk": "npx @stillrivercode/information-dense-keywords",
-    "idk:update": "npm update @stillrivercode/information-dense-keywords"
+    "idk:update": "npm update @stillrivercode/information-dense-keywords",
+    "ai-review": "./scripts/ai-review/format-suggestions.sh",
+    "ai-review-validate": "./scripts/ai-review/validate-suggestions.sh",
+    "ai-review-resolvable": "./scripts/ai-review-resolvable.sh"
   },
   "main": "package.json"
 }

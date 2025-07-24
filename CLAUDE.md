@@ -24,7 +24,15 @@ npm run idk:update          # Update IDK package
 ./scripts/create-pr.sh                             # Create pull request
 ./scripts/safe-commit.sh                           # Commit changes safely
 ./scripts/run-security-scan.sh                     # Run security analysis
-./scripts/setup-labels.sh  # Create GitHub repository labels
+./scripts/setup-labels.sh                          # Create GitHub repository labels
+
+# AI Review System (Resolvable Comments)
+npm run ai-review-resolvable                        # Complete AI review workflow with resolvable comments
+npm run ai-review                                   # Format AI suggestions with confidence levels
+npm run ai-review-validate                          # Validate AI suggestion JSON format
+./scripts/ai-review-resolvable.sh                  # Direct access to complete workflow
+./scripts/ai-review/format-suggestions.sh          # Direct access to suggestion formatter
+./scripts/ai-review/validate-suggestions.sh        # Direct access to suggestion validator
 ```
 
 ## Information Dense Keywords (IDK) Commands
@@ -88,7 +96,13 @@ analyze this authentication system then spec this improved version then plan thi
    - Cost monitoring and security scanning
    - Git operations and GitHub API interactions
 
-4. **Information Dense Keywords** (`@stillrivercode/information-dense-keywords`) - Standardized AI command vocabulary for consistent task execution
+4. **AI Review System** (`scripts/ai-review/`) - Resolvable comments feature with:
+   - Multi-factor confidence scoring algorithm
+   - GitHub suggestion format support
+   - Batch processing and validation tools
+   - Integration with OpenRouter AI analysis service
+
+5. **Information Dense Keywords** (`@stillrivercode/information-dense-keywords`) - Standardized AI command vocabulary for consistent task execution
 
 ### Key Integration Points
 
