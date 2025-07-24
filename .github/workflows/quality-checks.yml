@@ -29,7 +29,27 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint
+        run: |
+          # Run standard ESLint with --max-warnings 0 to fail on any warnings
+          npm run lint
+
+      - name: Run ESLint security scan
+        run: |
+          # Run security-specific ESLint and fail if any issues found
+          if ! npm run lint:security > eslint-security-check.txt 2>&1; then
+            echo "❌ ESLint security scan found issues:"
+            cat eslint-security-check.txt
+            exit 1
+          fi
+
+          # Also check if output contains errors/warnings even on successful exit
+          if grep -E "(error|warning)" eslint-security-check.txt; then
+            echo "❌ ESLint security scan found errors or warnings:"
+            cat eslint-security-check.txt
+            exit 1
+          fi
+
+          echo "✅ ESLint security scan passed"
 
       - name: Run YAML lint
         run: |
@@ -136,11 +156,24 @@ jobs:
 
       - name: Run ESLint security scan
         run: |
-          npm run lint:security > eslint-security-results.txt || true
+          # Run ESLint security scan and capture both success/failure
+          set +e  # Don't exit immediately on failure
+          npm run lint:security > eslint-security-results.txt 2>&1
+          ESLINT_EXIT_CODE=$?
+          set -e  # Re-enable exit on failure
+
           # Convert to JSON format for consistency
           echo '{"results": []}' > eslint-security-results.json
           if [ -s eslint-security-results.txt ]; then
             echo '{"results": ["ESLint security issues found - see eslint-security-results.txt"]}' > eslint-security-results.json
+          fi
+
+          # If ESLint had actual errors (not just "No security issues" message), preserve the exit code
+          if [ $ESLINT_EXIT_CODE -ne 0 ] && ! grep -q "No security issues found" eslint-security-results.txt; then
+            echo "❌ ESLint security scan failed with exit code $ESLINT_EXIT_CODE"
+            echo "Output:"
+            cat eslint-security-results.txt
+            # Don't exit here - let the security check step handle the failure logic
           fi
 
       - name: Check for security issues
@@ -183,14 +216,24 @@ jobs:
 
           # Check ESLint security results
           if [ -f eslint-security-results.txt ] && [ -s eslint-security-results.txt ]; then
-            # Count only actual error lines (lines with "error" in them)
-            ESLINT_SEC_COUNT=$(grep -c "error" eslint-security-results.txt || echo "0")
-            if [ "$ESLINT_SEC_COUNT" -gt 0 ]; then
-              SECURITY_ISSUES=true
-              # Treat all ESLint security issues as medium severity
-              BLOCKING_ISSUES=true
-              MEDIUM_HIGH_COUNT=$((MEDIUM_HIGH_COUNT + ESLINT_SEC_COUNT))
-              echo "ESLint security found $ESLINT_SEC_COUNT security issues (treated as medium severity)"
+            # Count actual error and warning lines (exclude summary lines)
+            ESLINT_SEC_COUNT=$(grep -E "^\s*/.*\.(js|ts|jsx|tsx)$|error|warning" eslint-security-results.txt | grep -E "error|warning" | wc -l || echo "0")
+
+            # Also check if the file contains actual linting issues (not just "No security issues found")
+            if [ "$ESLINT_SEC_COUNT" -gt 0 ] || (! grep -q "No security issues found" eslint-security-results.txt && [ -s eslint-security-results.txt ]); then
+              # If we have counted errors/warnings OR the file has content but not the "no issues" message
+              if [ "$ESLINT_SEC_COUNT" -eq 0 ]; then
+                # Count lines that aren't just command execution output
+                ESLINT_SEC_COUNT=$(grep -v -E "^> @|^$" eslint-security-results.txt | wc -l || echo "0")
+              fi
+
+              if [ "$ESLINT_SEC_COUNT" -gt 0 ]; then
+                SECURITY_ISSUES=true
+                # Treat all ESLint security issues as medium severity
+                BLOCKING_ISSUES=true
+                MEDIUM_HIGH_COUNT=$((MEDIUM_HIGH_COUNT + ESLINT_SEC_COUNT))
+                echo "ESLint security found $ESLINT_SEC_COUNT security issues (treated as medium severity)"
+              fi
             fi
           fi
 
