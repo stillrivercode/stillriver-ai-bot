@@ -45,12 +45,17 @@ EOF
 
 # Parse command line arguments
 STRICT_MODE=false
+STATS_ONLY=false
 INPUT_FILE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --strict)
             STRICT_MODE=true
+            shift
+            ;;
+        --stats-only)
+            STATS_ONLY=true
             shift
             ;;
         -h|--help)
@@ -249,6 +254,12 @@ show_statistics() {
 
 # Main function
 main() {
+    # If stats-only mode, just show statistics and exit
+    if [[ "$STATS_ONLY" == "true" ]]; then
+        show_statistics "$INPUT_FILE"
+        exit 0
+    fi
+
     info "Validating: $INPUT_FILE"
 
     local exit_code=0
@@ -281,5 +292,4 @@ main() {
     exit $exit_code
 }
 
-# Run main function
 main

@@ -47,8 +47,8 @@ class AIAnalysisService {
       }
     }
 
-    // Apply rate limiting - max 5 resolvable suggestions per PR
-    return this.applyRateLimiting(suggestions);
+    // Return all suggestions - rate limiting will be handled by format-suggestions.sh
+    return suggestions;
   }
 
   /**
@@ -106,7 +106,7 @@ For each issue found, provide:
       "line": <line number in the new file>,
       "originalCode": "The problematic code",
       "suggestedCode": "The fixed code",
-      "confidence": "definitive|probable|possible",
+      "ai_certainty": "definitive|probable|possible",
       "rationale": "Why this change is necessary"
     }
   ]
@@ -237,9 +237,8 @@ For subjective style preferences or speculative optimizations, do not include th
   enrichSuggestions(suggestions, file) {
     return suggestions.map(suggestion => ({
       ...suggestion,
-      file: file.filename,
-      commit: file.commit || null,
-      path: file.filename,
+      file_path: file.filename,
+      commit: file.sha || null,
       position: this.calculatePosition(file.patch, suggestion.line),
       timestamp: new Date().toISOString(),
     }));
@@ -281,52 +280,6 @@ For subjective style preferences or speculative optimizations, do not include th
     return null;
   }
 
-  /**
-   * Apply rate limiting to suggestions
-   */
-  applyRateLimiting(suggestions) {
-    // Sort by confidence and severity
-    const sorted = suggestions.sort((a, b) => {
-      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-      const confidenceOrder = { definitive: 0, probable: 1, possible: 2 };
-
-      // eslint-disable-next-line security/detect-object-injection
-      const severityDiff =
-        severityOrder[a.severity] - severityOrder[b.severity];
-      if (severityDiff !== 0) {
-        return severityDiff;
-      }
-
-      // eslint-disable-next-line security/detect-object-injection
-      return confidenceOrder[a.confidence] - confidenceOrder[b.confidence];
-    });
-
-    // Count resolvable suggestions (will be determined by confidence scoring)
-    let resolvableCount = 0;
-    const limited = [];
-
-    for (const suggestion of sorted) {
-      // This will be determined by confidence scoring, but for now
-      // we'll use a simple heuristic
-      const isHighConfidence =
-        suggestion.severity === 'critical' &&
-        suggestion.confidence === 'definitive';
-
-      if (isHighConfidence) {
-        if (resolvableCount < 5) {
-          resolvableCount++;
-          limited.push(suggestion);
-        } else {
-          // Downgrade to enhanced comment
-          limited.push({ ...suggestion, forceEnhanced: true });
-        }
-      } else {
-        limited.push(suggestion);
-      }
-    }
-
-    return limited;
-  }
 
   /**
    * Generate focused prompt for specific issue types

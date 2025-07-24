@@ -133,22 +133,60 @@ cmd_analyze() {
         exit 1
     fi
 
-    # This would integrate with the AI analysis service
-    # For now, we'll use the demo suggestions as a placeholder
-    warning "Full PR analysis not yet implemented - using demo format"
+    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+        error "GITHUB_TOKEN environment variable is required"
+        exit 1
+    fi
 
-    # Generate demo suggestions and format them
+    # Use the analysis orchestrator for real AI analysis
+    info "Performing real AI analysis with confidence scoring..."
+
     local temp_suggestions="/tmp/ai-review-suggestions-${pr_number}.json"
-    cp "${SCRIPT_DIR}/ai-review/test-suggestions.json" "$temp_suggestions"
 
-    # Format the suggestions
-    "${SCRIPT_DIR}/ai-review/format-suggestions.sh" \
-        -i "$temp_suggestions" \
-        -t "$FORMAT_TYPE" \
-        --max-resolvable "$MAX_RESOLVABLE" \
-        --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
-        --threshold-enhanced "$THRESHOLD_ENHANCED" \
-        ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
+    # Run the analysis orchestrator
+    if "${SCRIPT_DIR}/ai-review/services/analysis-orchestrator-cli.js" \
+        --pr-number "$pr_number" \
+        --model "$MODEL" \
+        --output "$temp_suggestions"; then
+
+        info "✅ AI analysis completed successfully"
+
+        # Validate the generated suggestions
+        if "${SCRIPT_DIR}/ai-review/validate-suggestions.sh" "$temp_suggestions"; then
+            info "✅ Suggestions validation passed"
+        else
+            warning "⚠️  Suggestions validation had warnings"
+        fi
+
+        # Format the suggestions
+        "${SCRIPT_DIR}/ai-review/format-suggestions.sh" \
+            -i "$temp_suggestions" \
+            -t "$FORMAT_TYPE" \
+            --max-resolvable "$MAX_RESOLVABLE" \
+            --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
+            --threshold-enhanced "$THRESHOLD_ENHANCED" \
+            ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
+
+        # Show statistics
+        info "📊 Analysis Statistics:"
+        "${SCRIPT_DIR}/ai-review/validate-suggestions.sh" --stats-only "$temp_suggestions"
+
+    else
+        error "❌ AI analysis failed"
+
+        # Fallback to demo data with warning
+        warning "Falling back to demo data for testing..."
+        cp "${SCRIPT_DIR}/ai-review/test-suggestions.json" "$temp_suggestions"
+
+        # Format the demo suggestions
+        "${SCRIPT_DIR}/ai-review/format-suggestions.sh" \
+            -i "$temp_suggestions" \
+            -t "$FORMAT_TYPE" \
+            --max-resolvable "$MAX_RESOLVABLE" \
+            --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
+            --threshold-enhanced "$THRESHOLD_ENHANCED" \
+            ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
+    fi
 
     # Clean up
     rm -f "$temp_suggestions"
