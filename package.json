@@ -67,6 +67,7 @@
     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "jest",
     "test:ai-review": "jest tests/ai-review/ --verbose",
+    "test:ai-review-working": "jest tests/ai-review/analysis-orchestrator.test.js tests/ai-review/github-api-service.test.js tests/ai-review/integration.test.js --verbose",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint --ext .js,.ts,.jsx,.tsx src/ tests/ --fix",

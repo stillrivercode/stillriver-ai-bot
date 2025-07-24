@@ -135,8 +135,8 @@ class AnalysisOrchestrator {
         );
 
         // Extract numeric score from result object
-        const confidenceScore = typeof confidenceResult === 'object' 
-          ? confidenceResult.score 
+        const confidenceScore = typeof confidenceResult === 'object'
+          ? confidenceResult.score
           : confidenceResult;
 
         // Add confidence score and additional metadata
