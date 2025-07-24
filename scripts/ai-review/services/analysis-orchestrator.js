@@ -623,17 +623,25 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
     const groupedByCategory = this.groupSuggestionsByCategory(suggestions);
     let detailed = '';
 
-    for (const [category, categorySuggestions] of Object.entries(groupedByCategory)) {
-      if (categorySuggestions.length === 0) continue;
+    for (const [category, categorySuggestions] of Object.entries(
+      groupedByCategory
+    )) {
+      if (categorySuggestions.length === 0) {
+        continue;
+      }
 
       const avgConfidence = Math.round(
-        categorySuggestions.reduce((sum, s) => sum + s.confidence, 0) / categorySuggestions.length * 100
+        (categorySuggestions.reduce((sum, s) => sum + s.confidence, 0) /
+          categorySuggestions.length) *
+          100
       );
 
       detailed += `### ${this.getCategoryIcon(category)} ${category} (${categorySuggestions.length} suggestion${categorySuggestions.length !== 1 ? 's' : ''}, avg confidence: ${avgConfidence}%)\n\n`;
 
       // Sort by confidence (highest first)
-      const sortedSuggestions = categorySuggestions.sort((a, b) => b.confidence - a.confidence);
+      const sortedSuggestions = categorySuggestions.sort(
+        (a, b) => b.confidence - a.confidence
+      );
 
       for (const suggestion of sortedSuggestions) {
         const icon = this.getConfidenceIcon(suggestion.confidence);
@@ -673,42 +681,48 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
    * Group suggestions by category
    */
   groupSuggestionsByCategory(suggestions) {
-    const grouped = {};
+    const grouped = new Map();
     for (const suggestion of suggestions) {
       const category = suggestion.category || 'General';
-      if (!grouped[category]) {
-        grouped[category] = [];
+      if (!grouped.has(category)) {
+        grouped.set(category, []);
       }
-      grouped[category].push(suggestion);
+      grouped.get(category).push(suggestion);
     }
-    return grouped;
+    return Object.fromEntries(grouped);
   }
 
   /**
    * Get icon for category
    */
   getCategoryIcon(category) {
-    const icons = {
-      Security: '🔒',
-      Performance: '⚡',
-      Quality: '🏆',
-      Style: '🎨',
-      Architecture: '🏠',
-      Documentation: '📝',
-      Testing: '🧪',
-      Accessibility: '♿',
-      General: '📝'
-    };
-    return icons[category] || '📝';
+    const icons = new Map([
+      ['Security', '🔒'],
+      ['Performance', '⚡'],
+      ['Quality', '🏆'],
+      ['Style', '🎨'],
+      ['Architecture', '🏠'],
+      ['Documentation', '📝'],
+      ['Testing', '🧪'],
+      ['Accessibility', '♿'],
+      ['General', '📝'],
+    ]);
+    return icons.get(category) || '📝';
   }
 
   /**
    * Get confidence icon
    */
   getConfidenceIcon(confidence) {
-    if (confidence >= 0.95) return '🔒';
-    if (confidence >= 0.8) return '⚡';
-    if (confidence >= 0.65) return '💡';
+    if (confidence >= 0.95) {
+      return '🔒';
+    }
+    if (confidence >= 0.8) {
+      return '⚡';
+    }
+    if (confidence >= 0.65) {
+      return '💡';
+    }
     return 'ℹ️';
   }
 
