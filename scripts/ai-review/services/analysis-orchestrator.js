@@ -432,11 +432,11 @@ The code changes in this pull request meet quality standards and are ready for a
       await this.github.postComment(prNumber, summaryComment);
       console.log('✅ Posted AI review summary comment');
 
+      // Post inline comments for resolvable suggestions if enabled
       if (inlineEnabled && this.hasResolvableSuggestions(suggestions)) {
-        // Post inline comments for resolvable suggestions
         const inlineComments = this.generateInlineComments(suggestions);
 
-        // Post each inline comment individually since we already posted the summary
+        // Post each inline comment individually
         for (const comment of inlineComments) {
           try {
             await this.github.postInlineComment(prNumber, comment);
@@ -447,12 +447,10 @@ The code changes in this pull request meet quality standards and are ready for a
         console.log(
           `✅ Posted ${inlineComments.length} inline resolvable suggestions`
         );
-      } else {
-        // Post detailed suggestions in a separate comment
-        const detailsComment = this.formatSuggestionsAsComment(suggestions);
-        await this.github.postComment(prNumber, detailsComment);
-        console.log('✅ Posted detailed suggestions comment');
       }
+
+      // Note: Detailed review is now included in the summary comment above
+      console.log('✅ Posted comprehensive review with detailed analysis');
     } catch (error) {
       console.error('❌ Failed to post suggestions to GitHub:', error.message);
       // Don't throw - this shouldn't break the workflow
@@ -494,6 +492,12 @@ ${Object.entries(stats.by_category)
 
     // Add approval recommendation
     summary += `\n\n${recommendation.icon} **Recommendation: ${recommendation.action}**\n\n${recommendation.reasoning}`;
+
+    // Add detailed review section
+    if (suggestions.length > 0) {
+      summary += `\n\n## 📝 Detailed Review\n\n`;
+      summary += this.formatDetailedSuggestions(suggestions);
+    }
 
     if (hasResolvable && inlineEnabled) {
       summary += `\n\n### 📝 Action Required
@@ -610,6 +614,102 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
       reasoning:
         'All suggestions are low confidence. The code is ready for approval.',
     };
+  }
+
+  /**
+   * Format detailed suggestions for the summary comment
+   */
+  formatDetailedSuggestions(suggestions) {
+    const groupedByCategory = this.groupSuggestionsByCategory(suggestions);
+    let detailed = '';
+
+    for (const [category, categorySuggestions] of Object.entries(groupedByCategory)) {
+      if (categorySuggestions.length === 0) continue;
+
+      const avgConfidence = Math.round(
+        categorySuggestions.reduce((sum, s) => sum + s.confidence, 0) / categorySuggestions.length * 100
+      );
+
+      detailed += `### ${this.getCategoryIcon(category)} ${category} (${categorySuggestions.length} suggestion${categorySuggestions.length !== 1 ? 's' : ''}, avg confidence: ${avgConfidence}%)\n\n`;
+
+      // Sort by confidence (highest first)
+      const sortedSuggestions = categorySuggestions.sort((a, b) => b.confidence - a.confidence);
+
+      for (const suggestion of sortedSuggestions) {
+        const icon = this.getConfidenceIcon(suggestion.confidence);
+        const confidencePercent = Math.round(suggestion.confidence * 100);
+        const isResolvable = suggestion.confidence >= 0.95;
+        const resolvableText = isResolvable ? ' (resolvable inline)' : '';
+
+        detailed += `${icon} **${suggestion.description}** (${confidencePercent}%${resolvableText})\n\n`;
+
+        if (suggestion.file_path) {
+          detailed += `**File**: \`${suggestion.file_path}\``;
+          if (suggestion.line_number) {
+            detailed += `:${suggestion.line_number}`;
+          }
+          detailed += '\n\n';
+        }
+
+        if (suggestion.reasoning) {
+          detailed += `${suggestion.reasoning}\n\n`;
+        }
+
+        if (suggestion.suggestedCode && suggestion.originalCode) {
+          detailed += `**Current Code:**\n\`\`\`\n${suggestion.originalCode}\n\`\`\`\n\n`;
+          detailed += `**Suggested Code:**\n\`\`\`\n${suggestion.suggestedCode}\n\`\`\`\n\n`;
+        } else if (suggestion.suggestedCode) {
+          detailed += `**Suggested Code:**\n\`\`\`\n${suggestion.suggestedCode}\n\`\`\`\n\n`;
+        }
+
+        detailed += '---\n\n';
+      }
+    }
+
+    return detailed;
+  }
+
+  /**
+   * Group suggestions by category
+   */
+  groupSuggestionsByCategory(suggestions) {
+    const grouped = {};
+    for (const suggestion of suggestions) {
+      const category = suggestion.category || 'General';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(suggestion);
+    }
+    return grouped;
+  }
+
+  /**
+   * Get icon for category
+   */
+  getCategoryIcon(category) {
+    const icons = {
+      Security: '🔒',
+      Performance: '⚡',
+      Quality: '🏆',
+      Style: '🎨',
+      Architecture: '🏠',
+      Documentation: '📝',
+      Testing: '🧪',
+      Accessibility: '♿',
+      General: '📝'
+    };
+    return icons[category] || '📝';
+  }
+
+  /**
+   * Get confidence icon
+   */
+  getConfidenceIcon(confidence) {
+    if (confidence >= 0.95) return '🔒';
+    if (confidence >= 0.8) return '⚡';
+    if (confidence >= 0.65) return '💡';
+    return 'ℹ️';
   }
 
   /**

@@ -107,10 +107,10 @@ describe('AnalysisOrchestrator', () => {
         expect.stringContaining('AI Review by')
       );
 
-      // Should post detailed suggestions
+      // Should post detailed review in summary
       expect(mockGitHub.postComment).toHaveBeenCalledWith(
         123,
-        expect.stringContaining('Detailed Suggestions')
+        expect.stringContaining('Detailed Review')
       );
     });
 
