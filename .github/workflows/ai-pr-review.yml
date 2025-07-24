@@ -284,6 +284,22 @@ jobs:
               console.log(`⚠ Failed to post failure comment: ${error.message}`);
             }
 
+            // Remove ai-review-needed label if it exists (since review failed)
+            try {
+              console.log('Removing ai-review-needed label...');
+              await github.rest.issues.removeLabel({
+                ...context.repo,
+                issue_number: context.issue.number,
+                name: 'ai-review-needed'
+              });
+              console.log('✓ Removed ai-review-needed label');
+            } catch (error) {
+              // Label might not exist - that's fine
+              if (error.status !== 404) {
+                console.log(`⚠ Failed to remove ai-review-needed label: ${error.message}`);
+              }
+            }
+
             // Fail the workflow step to indicate the review failure
             core.setFailed('AI review failed - manual review needed');
 
