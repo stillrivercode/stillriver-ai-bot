@@ -51,7 +51,9 @@ class GitHubAPIService {
   async fetchPullRequest(prNumber) {
     try {
       // Get PR metadata
-      const prData = this.callGitHubAPI(`/repos/${this.repo}/pulls/${prNumber}`);
+      const prData = this.callGitHubAPI(
+        `/repos/${this.repo}/pulls/${prNumber}`
+      );
 
       // Get PR files with diffs
       const filesData = this.callGitHubAPI(
@@ -135,7 +137,9 @@ class GitHubAPIService {
 
       // Skip files that are too large (>1000 lines changed)
       if (file.changes > 1000) {
-        console.warn(`Skipping ${file.filename}: too many changes (${file.changes})`);
+        console.warn(
+          `Skipping ${file.filename}: too many changes (${file.changes})`
+        );
         return false;
       }
 
@@ -225,17 +229,28 @@ class GitHubAPIService {
         const fileData = this.callGitHubAPI(
           `/repos/${this.repo}/contents/${file}`
         );
-        const content = Buffer.from(fileData.content, 'base64').toString('utf8');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+        const _content = Buffer.from(fileData.content, 'base64').toString(
+          'utf8'
+        );
 
         // Extract key configuration points
         if (file.includes('eslint')) {
-          standards.push('ESLint configuration found - follow JavaScript/TypeScript linting rules');
+          standards.push(
+            'ESLint configuration found - follow JavaScript/TypeScript linting rules'
+          );
         } else if (file.includes('prettier')) {
-          standards.push('Prettier configuration found - follow code formatting rules');
+          standards.push(
+            'Prettier configuration found - follow code formatting rules'
+          );
         } else if (file.includes('typescript') || file.includes('tsconfig')) {
-          standards.push('TypeScript configuration found - follow type safety practices');
+          standards.push(
+            'TypeScript configuration found - follow type safety practices'
+          );
         } else if (file.includes('python') || file.includes('pyproject')) {
-          standards.push('Python configuration found - follow PEP 8 style guidelines');
+          standards.push(
+            'Python configuration found - follow PEP 8 style guidelines'
+          );
         }
       } catch {
         // File not found - continue

@@ -8,7 +8,6 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs').promises;
-const path = require('path');
 const AnalysisOrchestrator = require('./analysis-orchestrator');
 
 // Parse command line arguments
@@ -22,7 +21,9 @@ function parseArgs() {
   };
 
   for (let i = 0; i < args.length; i++) {
+    // eslint-disable-next-line security/detect-object-injection
     const arg = args[i];
+    // eslint-disable-next-line security/detect-object-injection
     const nextArg = args[i + 1];
 
     switch (arg) {
@@ -103,7 +104,9 @@ async function main() {
 
     // Validate environment variables
     if (!process.env.OPENROUTER_API_KEY) {
-      console.error('❌ Error: OPENROUTER_API_KEY environment variable is required');
+      console.error(
+        '❌ Error: OPENROUTER_API_KEY environment variable is required'
+      );
       process.exit(1);
     }
 
@@ -151,8 +154,15 @@ async function main() {
 
     // Output suggestions
     if (args.output) {
-      await fs.writeFile(args.output, JSON.stringify(suggestions, null, 2));
-      console.log(`\n💾 Suggestions saved to: ${args.output}`);
+      // Validate output path to prevent directory traversal
+      const outputPath = args.output.replace(/\.\./g, ''); // Remove .. sequences
+      if (outputPath !== args.output) {
+        throw new Error('Invalid output path: directory traversal not allowed');
+      }
+
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      await fs.writeFile(outputPath, JSON.stringify(suggestions, null, 2));
+      console.log(`\n💾 Suggestions saved to: ${outputPath}`);
     } else {
       // Output to stdout for shell script consumption
       console.log('\n📄 Generated suggestions:');
@@ -161,7 +171,6 @@ async function main() {
 
     console.log('\n✅ Analysis completed successfully');
     process.exit(0);
-
   } catch (error) {
     console.error('❌ Analysis failed:', error.message);
 
@@ -180,7 +189,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('❌ Uncaught Exception:', error);
   process.exit(1);
 });

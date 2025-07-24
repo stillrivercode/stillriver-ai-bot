@@ -280,7 +280,6 @@ For subjective style preferences or speculative optimizations, do not include th
     return null;
   }
 
-
   /**
    * Generate focused prompt for specific issue types
    */

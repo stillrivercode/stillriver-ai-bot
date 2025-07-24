@@ -8,7 +8,6 @@
  */
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const path = require('path');
 const GitHubAPIService = require('./github-api-service');
 const AIAnalysisService = require('./ai-analysis-service');
 const ConfidenceScorer = require('../core/confidence-scoring');
@@ -27,7 +26,8 @@ class AnalysisOrchestrator {
    * @param {Object} config - Analysis configuration
    * @returns {Array} Scored suggestions ready for formatting
    */
-  async analyzePullRequest(prNumber, config = {}) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  async analyzePullRequest(prNumber, _config = {}) {
     try {
       console.log(`🔍 Fetching PR #${prNumber} data...`);
 
@@ -84,7 +84,9 @@ class AnalysisOrchestrator {
       // Sort by confidence score (highest first)
       scoredSuggestions.sort((a, b) => b.confidence - a.confidence);
 
-      console.log(`✅ Generated ${scoredSuggestions.length} confidence-scored suggestions`);
+      console.log(
+        `✅ Generated ${scoredSuggestions.length} confidence-scored suggestions`
+      );
 
       return scoredSuggestions;
     } catch (error) {
@@ -106,7 +108,9 @@ class AnalysisOrchestrator {
           prMetadata: context.prMetadata,
           fileContext: {
             filename: suggestion.file || suggestion.file_path,
-            language: this.detectLanguage(suggestion.file || suggestion.file_path),
+            language: this.detectLanguage(
+              suggestion.file || suggestion.file_path
+            ),
             changeType: this.determineChangeType(suggestion),
           },
           staticAnalysisResults: {
@@ -141,7 +145,9 @@ class AnalysisOrchestrator {
         if (this.validateSuggestion(scoredSuggestion)) {
           scoredSuggestions.push(scoredSuggestion);
         } else {
-          console.warn(`Skipping invalid suggestion: ${JSON.stringify(scoredSuggestion, null, 2)}`);
+          console.warn(
+            `Skipping invalid suggestion: ${JSON.stringify(scoredSuggestion, null, 2)}`
+          );
         }
       } catch (error) {
         console.error('Error scoring suggestion:', error);
@@ -192,7 +198,6 @@ class AnalysisOrchestrator {
    */
   extractReadmeContext(readme) {
     const lines = readme.split('\n');
-    const context = [];
 
     // Look for architecture, usage, or technology sections
     const relevantSections = [];
@@ -201,17 +206,21 @@ class AnalysisOrchestrator {
     for (const line of lines) {
       if (line.startsWith('#')) {
         const header = line.toLowerCase();
-        if (header.includes('architecture') ||
-            header.includes('technology') ||
-            header.includes('usage') ||
-            header.includes('getting started')) {
+        if (
+          header.includes('architecture') ||
+          header.includes('technology') ||
+          header.includes('usage') ||
+          header.includes('getting started')
+        ) {
           currentSection = line.replace(/^#+\s*/, '').trim();
         } else {
           currentSection = '';
         }
       } else if (currentSection && line.trim()) {
         relevantSections.push(line.trim());
-        if (relevantSections.length >= 3) break; // Limit context
+        if (relevantSections.length >= 3) {
+          break;
+        } // Limit context
       }
     }
 
@@ -222,28 +231,31 @@ class AnalysisOrchestrator {
    * Detect programming language from filename
    */
   detectLanguage(filename) {
-    if (!filename) return 'unknown';
+    if (!filename) {
+      return 'unknown';
+    }
 
     const ext = filename.split('.').pop().toLowerCase();
     const languageMap = {
-      'js': 'javascript',
-      'ts': 'typescript',
-      'jsx': 'javascript',
-      'tsx': 'typescript',
-      'py': 'python',
-      'java': 'java',
-      'cpp': 'cpp',
-      'c': 'c',
-      'cs': 'csharp',
-      'go': 'go',
-      'rb': 'ruby',
-      'php': 'php',
-      'swift': 'swift',
-      'kt': 'kotlin',
-      'rs': 'rust',
-      'sql': 'sql',
+      js: 'javascript',
+      ts: 'typescript',
+      jsx: 'javascript',
+      tsx: 'typescript',
+      py: 'python',
+      java: 'java',
+      cpp: 'cpp',
+      c: 'c',
+      cs: 'csharp',
+      go: 'go',
+      rb: 'ruby',
+      php: 'php',
+      swift: 'swift',
+      kt: 'kotlin',
+      rs: 'rust',
+      sql: 'sql',
     };
 
+    // eslint-disable-next-line security/detect-object-injection
     return languageMap[ext] || 'unknown';
   }
 
@@ -264,9 +276,15 @@ class AnalysisOrchestrator {
    * Get confidence level label from numerical score
    */
   getConfidenceLevel(score) {
-    if (score >= 0.95) return 'very_high';
-    if (score >= 0.8) return 'high';
-    if (score >= 0.65) return 'medium';
+    if (score >= 0.95) {
+      return 'very_high';
+    }
+    if (score >= 0.8) {
+      return 'high';
+    }
+    if (score >= 0.65) {
+      return 'medium';
+    }
     return 'low';
   }
 
@@ -277,15 +295,18 @@ class AnalysisOrchestrator {
     const required = ['description', 'confidence', 'category'];
 
     for (const field of required) {
+      // eslint-disable-next-line security/detect-object-injection
       if (!suggestion[field]) {
         console.warn(`Missing required field: ${field}`);
         return false;
       }
     }
 
-    if (typeof suggestion.confidence !== 'number' ||
-        suggestion.confidence < 0 ||
-        suggestion.confidence > 1) {
+    if (
+      typeof suggestion.confidence !== 'number' ||
+      suggestion.confidence < 0 ||
+      suggestion.confidence > 1
+    ) {
       console.warn(`Invalid confidence score: ${suggestion.confidence}`);
       return false;
     }
@@ -312,14 +333,17 @@ class AnalysisOrchestrator {
     for (const suggestion of suggestions) {
       // Count by confidence level
       const level = this.getConfidenceLevel(suggestion.confidence);
+      // eslint-disable-next-line security/detect-object-injection
       stats.by_confidence[level]++;
 
       // Count by category
       const category = suggestion.category || 'unknown';
+      // eslint-disable-next-line security/detect-object-injection
       stats.by_category[category] = (stats.by_category[category] || 0) + 1;
 
       // Count by severity
       const severity = suggestion.severity || 'unknown';
+      // eslint-disable-next-line security/detect-object-injection
       stats.by_severity[severity] = (stats.by_severity[severity] || 0) + 1;
     }
 
