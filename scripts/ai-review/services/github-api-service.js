@@ -72,13 +72,25 @@ class GitHubAPIService {
   /**
    * Call GitHub API using gh CLI
    * @param {string} endpoint - API endpoint
+   * @param {string} method - HTTP method (default: GET)
+   * @param {Object} data - Request body data for POST/PUT requests
    * @returns {Object} Parsed response
    */
-  callGitHubAPI(endpoint) {
+  callGitHubAPI(endpoint, method = 'GET', data = null) {
     try {
-      const command = `gh api "${endpoint}"`;
+      let command = `gh api "${endpoint}"`;
+      
+      if (method !== 'GET') {
+        command += ` --method ${method}`;
+      }
+      
+      if (data) {
+        command += ` --input -`;
+      }
+
       const response = execSync(command, {
         encoding: 'utf8',
+        input: data ? JSON.stringify(data) : null,
         env: {
           ...process.env,
           GITHUB_TOKEN: this.token,
@@ -203,6 +215,95 @@ class GitHubAPIService {
     } catch (error) {
       console.warn(`Failed to get repository context: ${error.message}`);
       return {};
+    }
+  }
+
+  /**
+   * Post comment to a pull request
+   * @param {string|number} prNumber - Pull request number
+   * @param {string} body - Comment body in markdown
+   * @returns {Object} Created comment data
+   */
+  async postComment(prNumber, body) {
+    try {
+      const command = `gh pr comment ${prNumber} --body "${body.replace(/"/g, '\\"')}"`;
+      const response = execSync(command, {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          GITHUB_TOKEN: this.token,
+        },
+      });
+      
+      return { success: true, output: response.trim() };
+    } catch (error) {
+      throw new Error(`Failed to post comment to PR ${prNumber}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Post review comment with inline suggestions
+   * @param {string|number} prNumber - Pull request number
+   * @param {string} body - Review body in markdown
+   * @param {Array} comments - Array of inline comment objects
+   * @returns {Object} Created review data
+   */
+  async postReview(prNumber, body, comments = []) {
+    try {
+      // If no inline comments, just post a regular comment
+      if (comments.length === 0) {
+        return this.postComment(prNumber, body);
+      }
+
+      // For inline comments, we need to create review comments
+      // This is more complex and requires the GitHub API directly
+      const reviewData = {
+        body: body,
+        event: 'COMMENT',
+        comments: comments.map(comment => ({
+          path: comment.path,
+          position: comment.position,
+          body: comment.body
+        }))
+      };
+
+      const response = this.callGitHubAPI(
+        `/repos/${this.repo}/pulls/${prNumber}/reviews`,
+        'POST',
+        reviewData
+      );
+
+      return response;
+    } catch (error) {
+      // Fallback to regular comment if review fails
+      console.warn(`Review comment failed, falling back to regular comment: ${error.message}`);
+      return this.postComment(prNumber, body);
+    }
+  }
+
+  /**
+   * Post individual inline comment with suggestion
+   * @param {string|number} prNumber - Pull request number
+   * @param {Object} comment - Comment object with path, line, and body
+   * @returns {Object} Created comment data
+   */
+  async postInlineComment(prNumber, comment) {
+    try {
+      // Use gh CLI to post review comment on specific line
+      const escapedBody = comment.body.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+      const command = `gh pr comment ${prNumber} --body "${escapedBody}"`;
+      
+      const response = execSync(command, {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          GITHUB_TOKEN: this.token,
+        },
+      });
+      
+      return { success: true, output: response.trim() };
+    } catch (error) {
+      throw new Error(`Failed to post inline comment to PR ${prNumber}: ${error.message}`);
     }
   }
 

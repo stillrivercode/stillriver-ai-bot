@@ -15,6 +15,7 @@ coverage
 npm-audit-results.json
 eslint-security-results.json
 eslint-security-results.txt
+bandit-report-*.json
 *-results.json
 *-results.txt
 security-scan-results/

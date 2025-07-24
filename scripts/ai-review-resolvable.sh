@@ -158,15 +158,8 @@ cmd_analyze() {
             warning "⚠️  Suggestions validation had warnings"
         fi
 
-        # Format the suggestions
-        "${SCRIPT_DIR}/ai-review/format-suggestions.sh" \
-            -i "$temp_suggestions" \
-            -t "$FORMAT_TYPE" \
-            --max-resolvable "$MAX_RESOLVABLE" \
-            --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
-            --threshold-enhanced "$THRESHOLD_ENHANCED" \
-            --enable-inline "${AI_ENABLE_INLINE_COMMENTS:-true}" \
-            ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
+        # Suggestions are automatically posted to GitHub by the orchestrator
+        info "✅ AI suggestions have been posted to the pull request"
 
         # Show statistics
         info "📊 Analysis Statistics:"
@@ -175,19 +168,23 @@ cmd_analyze() {
     else
         error "❌ AI analysis failed"
 
-        # Fallback to demo data with warning
-        warning "Falling back to demo data for testing..."
-        cp "${SCRIPT_DIR}/ai-review/test-suggestions.json" "$temp_suggestions"
+        # Fallback to posting a failure comment
+        warning "AI analysis failed - posting error comment to PR"
+        
+        # Post error comment to PR using gh CLI
+        if command -v gh &> /dev/null && [[ -n "${GITHUB_TOKEN:-}" ]]; then
+            gh pr comment "$pr_number" --body "## ⚠️ AI Review Failed
 
-        # Format the demo suggestions
-        "${SCRIPT_DIR}/ai-review/format-suggestions.sh" \
-            -i "$temp_suggestions" \
-            -t "$FORMAT_TYPE" \
-            --max-resolvable "$MAX_RESOLVABLE" \
-            --threshold-resolvable "$THRESHOLD_RESOLVABLE" \
-            --threshold-enhanced "$THRESHOLD_ENHANCED" \
-            --enable-inline "${AI_ENABLE_INLINE_COMMENTS:-true}" \
-            ${OUTPUT_FILE:+-o "$OUTPUT_FILE"}
+The AI review could not be completed due to an analysis error. This could be due to:
+- API rate limiting or service issues
+- Large diff size exceeding analysis limits
+- Temporary connectivity problems
+
+Please retry the review later by adding the \`ai-review-needed\` label or request manual review.
+
+---
+*AI Review attempt failed at $(date -u +"%Y-%m-%dT%H:%M:%SZ")*" || true
+        fi
     fi
 
     # Clean up

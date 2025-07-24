@@ -10,7 +10,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const GitHubAPIService = require('./github-api-service');
 const AIAnalysisService = require('./ai-analysis-service');
-const ConfidenceScorer = require('../core/confidence-scoring');
+const { ConfidenceScorer } = require('../core/confidence-scoring');
 
 class AnalysisOrchestrator {
   constructor(options = {}) {
@@ -69,6 +69,10 @@ class AnalysisOrchestrator {
 
       if (rawSuggestions.length === 0) {
         console.log('✅ No issues found by AI analysis');
+        
+        // Post summary comment when no suggestions found
+        await this.postNoSuggestionsComment(prNumber, prData, analysisFiles.length);
+        
         return [];
       }
 
@@ -87,6 +91,9 @@ class AnalysisOrchestrator {
       console.log(
         `✅ Generated ${scoredSuggestions.length} confidence-scored suggestions`
       );
+
+      // Post suggestions as GitHub comments/reviews
+      await this.postSuggestionsToGitHub(prNumber, scoredSuggestions, prData);
 
       return scoredSuggestions;
     } catch (error) {
@@ -348,6 +355,199 @@ class AnalysisOrchestrator {
     }
 
     return stats;
+  }
+
+  /**
+   * Post a summary comment when no suggestions are found
+   */
+  async postNoSuggestionsComment(prNumber, prData, filesAnalyzed) {
+    try {
+      const inlineEnabled = process.env.AI_ENABLE_INLINE_COMMENTS !== 'false';
+      const reviewType = inlineEnabled ? 'Resolvable Comments' : 'Enhanced Comments';
+      
+      const summaryComment = `## 🤖 AI Review by ${reviewType}
+
+✅ **Great work!** No significant issues were found during the AI analysis.
+
+### Analysis Summary
+- **Files Analyzed**: ${filesAnalyzed}
+- **Issues Found**: 0
+- **Confidence**: High
+
+### What was reviewed:
+- Code quality and maintainability
+- Security vulnerabilities
+- Performance considerations
+- Best practices adherence
+- Type safety (where applicable)
+
+The code changes in this pull request meet quality standards and are ready for human review.
+
+---
+*AI Review completed at ${new Date().toISOString()}*  
+*Model: ${this.options.model || 'default'} | Analysis ID: ${prData.head.sha.substring(0, 8)}*`;
+
+      await this.github.postComment(prNumber, summaryComment);
+      console.log('✅ Posted no-suggestions summary comment to PR');
+    } catch (error) {
+      console.error('❌ Failed to post summary comment:', error.message);
+      // Don't throw - this shouldn't break the workflow
+    }
+  }
+
+  /**
+   * Post suggestions to GitHub as comments or reviews
+   */
+  async postSuggestionsToGitHub(prNumber, suggestions, prData) {
+    try {
+      const inlineEnabled = process.env.AI_ENABLE_INLINE_COMMENTS !== 'false';
+      const stats = this.generateStatistics(suggestions);
+      
+      // Generate summary comment with statistics
+      const summaryComment = this.generateSummaryComment(suggestions, stats, inlineEnabled, prData);
+      
+      // Always post summary comment first for visibility
+      await this.github.postComment(prNumber, summaryComment);
+      console.log('✅ Posted AI review summary comment');
+
+      if (inlineEnabled && this.hasResolvableSuggestions(suggestions)) {
+        // Post inline comments for resolvable suggestions
+        const inlineComments = this.generateInlineComments(suggestions);
+        
+        // Post each inline comment individually since we already posted the summary
+        for (const comment of inlineComments) {
+          try {
+            await this.github.postInlineComment(prNumber, comment);
+          } catch (error) {
+            console.warn(`Failed to post inline comment: ${error.message}`);
+          }
+        }
+        console.log(`✅ Posted ${inlineComments.length} inline resolvable suggestions`);
+      } else {
+        // Post detailed suggestions in a separate comment
+        const detailsComment = this.formatSuggestionsAsComment(suggestions);
+        await this.github.postComment(prNumber, detailsComment);
+        console.log('✅ Posted detailed suggestions comment');
+      }
+    } catch (error) {
+      console.error('❌ Failed to post suggestions to GitHub:', error.message);
+      // Don't throw - this shouldn't break the workflow
+    }
+  }
+
+  /**
+   * Generate summary comment header
+   */
+  generateSummaryComment(suggestions, stats, inlineEnabled, prData) {
+    const reviewType = inlineEnabled ? 'Resolvable Comments' : 'Enhanced Comments';
+    const hasResolvable = stats.by_confidence.very_high > 0;
+    
+    let summary = `## 🤖 AI Review by ${reviewType}\n\n`;
+    
+    if (hasResolvable && inlineEnabled) {
+      summary += `🔒 **${stats.by_confidence.very_high} critical suggestion${stats.by_confidence.very_high !== 1 ? 's' : ''} require${stats.by_confidence.very_high === 1 ? 's' : ''} immediate attention** (resolvable)\n\n`;
+    }
+    
+    summary += `### Analysis Summary
+- **Total Suggestions**: ${stats.total}
+- **Critical** (≥95%): ${stats.by_confidence.very_high} ${inlineEnabled ? '(resolvable)' : '(high priority)'}
+- **High** (80-94%): ${stats.by_confidence.high} (enhanced comments)
+- **Medium** (65-79%): ${stats.by_confidence.medium} (informational)
+- **Low** (<65%): ${stats.by_confidence.low} (suppressed)
+
+### Categories
+${Object.entries(stats.by_category)
+  .map(([category, count]) => `- **${category}**: ${count}`)
+  .join('\n')}`;
+
+    if (hasResolvable && inlineEnabled) {
+      summary += `\n\n### 📝 Action Required
+Please review and resolve the critical suggestions marked with 🔒 below. These can be applied with one click using GitHub's suggestion feature.`;
+    }
+
+    summary += `\n\n---
+*AI Review completed at ${new Date().toISOString()}*  
+*Model: ${this.options.model || 'default'} | Analysis ID: ${prData.head.sha.substring(0, 8)}*`;
+
+    return summary;
+  }
+
+  /**
+   * Check if there are any resolvable suggestions
+   */
+  hasResolvableSuggestions(suggestions) {
+    return suggestions.some(s => s.confidence >= 0.95);
+  }
+
+  /**
+   * Generate inline comments for GitHub review
+   */
+  generateInlineComments(suggestions) {
+    const inlineComments = [];
+    const resolvableLimit = 5; // Limit to prevent spam
+    let resolvableCount = 0;
+
+    for (const suggestion of suggestions) {
+      if (suggestion.confidence >= 0.95 && resolvableCount < resolvableLimit) {
+        // Generate resolvable suggestion
+        if (suggestion.line_number && suggestion.suggestedCode && suggestion.originalCode) {
+          inlineComments.push({
+            path: suggestion.file_path,
+            line: suggestion.line_number,
+            body: `🔒 **Critical**: ${suggestion.description}
+
+\`\`\`suggestion
+${suggestion.suggestedCode}
+\`\`\`
+
+**Confidence**: ${Math.round(suggestion.confidence * 100)}% | **Category**: ${suggestion.category}`
+          });
+          resolvableCount++;
+        }
+      }
+    }
+
+    return inlineComments;
+  }
+
+  /**
+   * Format all suggestions as a comment (fallback when inline not available)
+   */
+  formatSuggestionsAsComment(suggestions) {
+    let comment = '## 📋 Detailed Suggestions\n\n';
+    
+    for (const suggestion of suggestions) {
+      const icon = suggestion.confidence >= 0.95 ? '🔒' : 
+                   suggestion.confidence >= 0.8 ? '⚡' : 
+                   suggestion.confidence >= 0.65 ? '💡' : 'ℹ️';
+      
+      const confidenceLevel = suggestion.confidence >= 0.95 ? 'Critical' :
+                             suggestion.confidence >= 0.8 ? 'High' :
+                             suggestion.confidence >= 0.65 ? 'Medium' : 'Low';
+      
+      comment += `### ${icon} ${confidenceLevel}: ${suggestion.description}\n\n`;
+      
+      if (suggestion.file_path) {
+        comment += `**File**: \`${suggestion.file_path}\``;
+        if (suggestion.line_number) {
+          comment += `:${suggestion.line_number}`;
+        }
+        comment += '\n\n';
+      }
+      
+      if (suggestion.originalCode && suggestion.suggestedCode) {
+        comment += '**Current Code:**\n```\n';
+        comment += suggestion.originalCode;
+        comment += '\n```\n\n**Suggested Code:**\n```\n';
+        comment += suggestion.suggestedCode;
+        comment += '\n```\n\n';
+      }
+      
+      comment += `**Confidence**: ${Math.round(suggestion.confidence * 100)}% | **Category**: ${suggestion.category}\n\n`;
+      comment += '---\n\n';
+    }
+    
+    return comment;
   }
 }
 

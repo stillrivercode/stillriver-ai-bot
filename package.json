@@ -66,6 +66,9 @@
   "scripts": {
     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "jest",
+    "test:ai-review": "jest tests/ai-review/ --verbose",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint --ext .js,.ts,.jsx,.tsx src/ tests/ --fix",
     "lint:yaml": "yamllint -d relaxed *.yml *.yaml .github/workflows/*.yml .github/workflows/*.yaml || echo 'No YAML files to lint'",
     "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'",
