@@ -39,7 +39,7 @@ class AIAnalysisService {
         const fileSuggestions = await this.analyzeFile(file, context);
         suggestions.push(...fileSuggestions);
       } catch (error) {
-        console.error(`Error analyzing file ${file.filename}:`, error);
+        console.error('Error analyzing file %s:', file.filename, error);
       }
     }
 
