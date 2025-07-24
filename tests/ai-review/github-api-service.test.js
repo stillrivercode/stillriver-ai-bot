@@ -345,10 +345,11 @@ describe('GitHubAPIService', () => {
     it('should filter files appropriately for analysis', () => {
       const result = service.filterFilesForAnalysis(testFiles);
 
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(4);
       expect(result.map(f => f.filename)).toEqual([
         'src/test.js',
         'src/test.ts',
+        'package.json',
         'Dockerfile',
       ]);
     });

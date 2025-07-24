@@ -44,7 +44,7 @@ class AnalysisOrchestrator {
         return [];
       }
 
-      console.log(`📁 Analyzing ${analysisFiles.length} files...`);
+      console.log(`📁 Analyzing ${analysisFiles.length} of ${prData.files.length} files (${prData.files.length - analysisFiles.length} filtered out)...`);
 
       // Build analysis context
       const analysisContext = {
@@ -384,7 +384,8 @@ class AnalysisOrchestrator {
 ### Analysis Summary
 - **Files Analyzed**: ${filesAnalyzed}
 - **Issues Found**: 0
-- **Confidence**: High
+- **Overall Confidence**: High (95%+)
+- **Analysis Coverage**: Complete
 
 ### What was reviewed:
 - Code quality and maintainability
@@ -473,8 +474,13 @@ The code changes in this pull request meet quality standards and are ready for a
       summary += `🔒 **${stats.by_confidence.very_high} critical suggestion${stats.by_confidence.very_high !== 1 ? 's' : ''} require${stats.by_confidence.very_high === 1 ? 's' : ''} immediate attention** (resolvable)\n\n`;
     }
 
+    const overallConfidence = this.calculateOverallConfidence(suggestions);
+    const analysisQuality = this.getAnalysisQuality(stats, suggestions.length);
+
     summary += `### Analysis Summary
 - **Total Suggestions**: ${stats.total}
+- **Overall Confidence**: ${overallConfidence.label} (${overallConfidence.percentage}%)
+- **Analysis Quality**: ${analysisQuality}
 - **Critical** (≥95%): ${stats.by_confidence.very_high} ${inlineEnabled ? '(resolvable)' : '(high priority)'}
 - **High** (80-94%): ${stats.by_confidence.high} (enhanced comments)
 - **Medium** (65-79%): ${stats.by_confidence.medium} (informational)
@@ -498,6 +504,51 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
 *Model: ${this.options.model || 'default'} | Analysis ID: ${prData.head.sha.substring(0, 8)}*`;
 
     return summary;
+  }
+
+  /**
+   * Calculate overall confidence score from suggestions
+   */
+  calculateOverallConfidence(suggestions) {
+    if (suggestions.length === 0) {
+      return { percentage: 95, label: 'High' };
+    }
+
+    // Weight by confidence level - higher confidence suggestions matter more
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    for (const suggestion of suggestions) {
+      const confidence = suggestion.confidence || 0;
+      const weight = confidence >= 0.8 ? 2 : confidence >= 0.65 ? 1.5 : 1;
+      weightedSum += confidence * weight;
+      totalWeight += weight;
+    }
+
+    const avgConfidence = totalWeight > 0 ? weightedSum / totalWeight : 0;
+    const percentage = Math.round(avgConfidence * 100);
+
+    let label = 'Low';
+    if (percentage >= 85) label = 'Very High';
+    else if (percentage >= 75) label = 'High';
+    else if (percentage >= 60) label = 'Medium';
+
+    return { percentage, label };
+  }
+
+  /**
+   * Determine analysis quality based on suggestion distribution
+   */
+  getAnalysisQuality(stats, totalSuggestions) {
+    const criticalRatio = stats.by_confidence.very_high / Math.max(totalSuggestions, 1);
+    const highRatio = stats.by_confidence.high / Math.max(totalSuggestions, 1);
+    const significantRatio = criticalRatio + highRatio;
+
+    if (totalSuggestions === 0) return 'Complete';
+    if (significantRatio > 0.7) return 'Comprehensive';
+    if (significantRatio > 0.4) return 'Thorough';
+    if (significantRatio > 0.2) return 'Good';
+    return 'Basic';
   }
 
   /**

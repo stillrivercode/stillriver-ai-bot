@@ -111,6 +111,7 @@ class GitHubAPIService {
    */
   filterFilesForAnalysis(files) {
     const analysisExtensions = new Set([
+      // Programming languages
       '.js',
       '.ts',
       '.jsx',
@@ -128,6 +129,35 @@ class GitHubAPIService {
       '.scala',
       '.rs',
       '.sql',
+      // Configuration and markup
+      '.json',
+      '.yaml',
+      '.yml',
+      '.toml',
+      '.ini',
+      '.cfg',
+      '.conf',
+      '.xml',
+      '.html',
+      '.css',
+      '.scss',
+      '.sass',
+      '.less',
+      // Documentation and scripts
+      '.md',
+      '.txt',
+      '.sh',
+      '.bash',
+      '.zsh',
+      '.fish',
+      '.ps1',
+      '.bat',
+      '.cmd',
+      // Docker and CI/CD
+      '.dockerfile',
+      '.dockerignore',
+      '.gitignore',
+      '.gitattributes',
     ]);
 
     const skipPatterns = [
@@ -171,10 +201,29 @@ class GitHubAPIService {
         return true;
       }
 
-      // Include specific important files without extensions
-      const importantFiles = ['Dockerfile', 'Makefile', 'Jenkinsfile'];
+      // Include specific important files without extensions or with special names
+      const importantFiles = [
+        'Dockerfile', 'Makefile', 'Jenkinsfile', 'Vagrantfile',
+        'Rakefile', 'Guardfile', 'Procfile', 'requirements.txt',
+        'setup.py', 'pyproject.toml', 'Cargo.toml', 'go.mod',
+        'composer.json', 'Gemfile', 'CMakeLists.txt'
+      ];
       const filename = file.filename.split('/').pop();
-      return importantFiles.includes(filename);
+      if (importantFiles.includes(filename)) {
+        return true;
+      }
+
+      // Include files with important base names (case insensitive)
+      const baseName = filename.toLowerCase();
+      const importantBaseNames = [
+        'readme', 'license', 'changelog', 'contributing',
+        'claude', 'gemini', 'openai', 'anthropic'
+      ];
+      if (importantBaseNames.some(name => baseName.startsWith(name))) {
+        return true;
+      }
+
+      return false;
     });
   }
 
