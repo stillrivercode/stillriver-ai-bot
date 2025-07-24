@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const AnalysisOrchestrator = require('../../scripts/ai-review/services/analysis-orchestrator');
 const GitHubAPIService = require('../../scripts/ai-review/services/github-api-service');
 const AIAnalysisService = require('../../scripts/ai-review/services/ai-analysis-service');
@@ -25,36 +26,38 @@ describe('AnalysisOrchestrator', () => {
         changes: 10,
         additions: 5,
         deletions: 5,
-        patch: '@@ -1,3 +1,3 @@\n-old code\n+new code'
-      }
-    ]
+        patch: '@@ -1,3 +1,3 @@\n-old code\n+new code',
+      },
+    ],
   };
 
   const mockRepoContext = {
     name: 'test-repo',
     description: 'Test repository',
     language: 'JavaScript',
-    topics: ['test', 'javascript']
+    topics: ['test', 'javascript'],
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup GitHub API service mock
     mockGitHub = {
       fetchPullRequest: jest.fn().mockResolvedValue(mockPRData),
       getRepositoryContext: jest.fn().mockResolvedValue(mockRepoContext),
-      getCodingStandards: jest.fn().mockResolvedValue('ESLint configuration found'),
+      getCodingStandards: jest
+        .fn()
+        .mockResolvedValue('ESLint configuration found'),
       filterFilesForAnalysis: jest.fn().mockReturnValue(mockPRData.files),
       postComment: jest.fn().mockResolvedValue({ success: true }),
       postReview: jest.fn().mockResolvedValue({ success: true }),
-      postInlineComment: jest.fn().mockResolvedValue({ success: true })
+      postInlineComment: jest.fn().mockResolvedValue({ success: true }),
     };
     GitHubAPIService.mockImplementation(() => mockGitHub);
 
     // Setup AI analysis service mock
     mockAI = {
-      analyzePullRequest: jest.fn()
+      analyzePullRequest: jest.fn(),
     };
     AIAnalysisService.mockImplementation(() => mockAI);
 
@@ -71,8 +74,8 @@ describe('AnalysisOrchestrator', () => {
       expect(result).toEqual([]);
       expect(mockGitHub.postComment).toHaveBeenCalledWith(
         123,
-        expect.stringContaining('Great work!') && 
-        expect.stringContaining('No significant issues were found')
+        expect.stringContaining('Great work!') &&
+          expect.stringContaining('No significant issues were found')
       );
       expect(mockGitHub.postComment).toHaveBeenCalledTimes(1);
     });
@@ -86,10 +89,10 @@ describe('AnalysisOrchestrator', () => {
           category: 'best_practices',
           severity: 'medium',
           originalCode: 'let x = 1',
-          suggestedCode: 'const x = 1'
-        }
+          suggestedCode: 'const x = 1',
+        },
       ];
-      
+
       mockAI.analyzePullRequest.mockResolvedValue(mockSuggestions);
 
       const result = await orchestrator.analyzePullRequest(123);
@@ -97,13 +100,13 @@ describe('AnalysisOrchestrator', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('confidence');
       expect(result[0]).toHaveProperty('confidence_level');
-      
+
       // Should post summary comment
       expect(mockGitHub.postComment).toHaveBeenCalledWith(
         123,
         expect.stringContaining('AI Review by')
       );
-      
+
       // Should post detailed suggestions
       expect(mockGitHub.postComment).toHaveBeenCalledWith(
         123,
@@ -113,7 +116,7 @@ describe('AnalysisOrchestrator', () => {
 
     it('should post inline comments for high-confidence resolvable suggestions', async () => {
       process.env.AI_ENABLE_INLINE_COMMENTS = 'true';
-      
+
       const mockSuggestions = [
         {
           description: 'Critical security issue',
@@ -122,14 +125,16 @@ describe('AnalysisOrchestrator', () => {
           category: 'security',
           severity: 'critical',
           originalCode: 'eval(userInput)',
-          suggestedCode: 'safeEval(userInput)'
-        }
+          suggestedCode: 'safeEval(userInput)',
+        },
       ];
-      
+
       mockAI.analyzePullRequest.mockResolvedValue(mockSuggestions);
-      
+
       // Mock high confidence score
-      jest.spyOn(orchestrator.confidenceScorer, 'calculateScore').mockReturnValue(0.96);
+      jest
+        .spyOn(orchestrator.confidenceScorer, 'calculateScore')
+        .mockReturnValue({ score: 0.96, classification: 'RESOLVABLE' });
 
       await orchestrator.analyzePullRequest(123);
 
@@ -138,47 +143,49 @@ describe('AnalysisOrchestrator', () => {
         123,
         expect.stringContaining('AI Review by')
       );
-      
+
       // Should post inline comment
       expect(mockGitHub.postInlineComment).toHaveBeenCalledWith(
         123,
         expect.objectContaining({
           path: 'src/test.js',
           line: 10,
-          body: expect.stringContaining('Critical')
+          body: expect.stringContaining('Critical'),
         })
       );
     });
 
     it('should handle API failures gracefully', async () => {
       mockGitHub.fetchPullRequest.mockRejectedValue(new Error('API Error'));
-      
+
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
-      await expect(orchestrator.analyzePullRequest(123)).rejects.toThrow('API Error');
-      
+
+      await expect(orchestrator.analyzePullRequest(123)).rejects.toThrow(
+        'API Error'
+      );
+
       expect(consoleSpy).toHaveBeenCalledWith(
         '❌ Analysis orchestration failed:',
         expect.any(Error)
       );
-      
+
       consoleSpy.mockRestore();
     });
 
     it('should handle comment posting failures gracefully', async () => {
       mockAI.analyzePullRequest.mockResolvedValue([]);
       mockGitHub.postComment.mockRejectedValue(new Error('Comment failed'));
-      
+
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const result = await orchestrator.analyzePullRequest(123);
-      
+
       expect(result).toEqual([]);
       expect(consoleSpy).toHaveBeenCalledWith(
         '❌ Failed to post summary comment:',
         'Comment failed'
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -191,10 +198,10 @@ describe('AnalysisOrchestrator', () => {
         123,
         expect.stringMatching(/Great work!.*No significant issues were found/s)
       );
-      
+
       const call = mockGitHub.postComment.mock.calls[0];
       const comment = call[1];
-      
+
       expect(comment).toContain('Files Analyzed**: 5');
       expect(comment).toContain('Issues Found**: 0');
       expect(comment).toContain('Code quality and maintainability');
@@ -204,7 +211,7 @@ describe('AnalysisOrchestrator', () => {
 
     it('should indicate review type based on inline comments setting', async () => {
       process.env.AI_ENABLE_INLINE_COMMENTS = 'false';
-      
+
       await orchestrator.postNoSuggestionsComment(123, mockPRData, 3);
 
       expect(mockGitHub.postComment).toHaveBeenCalledWith(
@@ -219,8 +226,8 @@ describe('AnalysisOrchestrator', () => {
       const suggestions = [
         { confidence: 0.96, category: 'security', severity: 'critical' },
         { confidence: 0.85, category: 'performance', severity: 'medium' },
-        { confidence: 0.70, category: 'style', severity: 'low' },
-        { confidence: 0.50, category: 'documentation', severity: 'low' }
+        { confidence: 0.7, category: 'style', severity: 'low' },
+        { confidence: 0.5, category: 'documentation', severity: 'low' },
       ];
 
       const stats = orchestrator.generateStatistics(suggestions);
@@ -240,19 +247,13 @@ describe('AnalysisOrchestrator', () => {
 
   describe('hasResolvableSuggestions', () => {
     it('should return true when suggestions have confidence >= 0.95', () => {
-      const suggestions = [
-        { confidence: 0.96 },
-        { confidence: 0.80 }
-      ];
+      const suggestions = [{ confidence: 0.96 }, { confidence: 0.8 }];
 
       expect(orchestrator.hasResolvableSuggestions(suggestions)).toBe(true);
     });
 
     it('should return false when no suggestions have confidence >= 0.95', () => {
-      const suggestions = [
-        { confidence: 0.94 },
-        { confidence: 0.80 }
-      ];
+      const suggestions = [{ confidence: 0.94 }, { confidence: 0.8 }];
 
       expect(orchestrator.hasResolvableSuggestions(suggestions)).toBe(false);
     });
@@ -268,7 +269,7 @@ describe('AnalysisOrchestrator', () => {
           line_number: 5,
           category: 'best_practices',
           originalCode: 'let x = 1',
-          suggestedCode: 'const x = 1'
+          suggestedCode: 'const x = 1',
         },
         {
           confidence: 0.97,
@@ -276,9 +277,9 @@ describe('AnalysisOrchestrator', () => {
           file_path: 'src/test.js',
           line_number: 10,
           category: 'cleanup',
-          originalCode: 'let unused = 1',
-          suggestedCode: ''
-        }
+          originalCode: 'let unused = 1;',
+          suggestedCode: '// Remove this line',
+        },
       ];
 
       const inlineComments = orchestrator.generateInlineComments(suggestions);
@@ -287,22 +288,28 @@ describe('AnalysisOrchestrator', () => {
       expect(inlineComments[0]).toEqual({
         path: 'src/test.js',
         line: 5,
-        body: expect.stringContaining('🔒 **Critical**: Use const instead of let')
+        body: expect.stringContaining(
+          '🔒 **Critical**: Use const instead of let'
+        ),
       });
-      expect(inlineComments[0].body).toContain('```suggestion\nconst x = 1\n```');
+      expect(inlineComments[0].body).toContain(
+        '```suggestion\nconst x = 1\n```'
+      );
       expect(inlineComments[0].body).toContain('**Confidence**: 96%');
     });
 
     it('should limit resolvable suggestions to 5 per PR', () => {
-      const suggestions = Array(10).fill(null).map((_, i) => ({
-        confidence: 0.96,
-        description: `Issue ${i}`,
-        file_path: 'src/test.js',
-        line_number: i + 1,
-        category: 'test',
-        originalCode: `old${i}`,
-        suggestedCode: `new${i}`
-      }));
+      const suggestions = Array(10)
+        .fill(null)
+        .map((_, i) => ({
+          confidence: 0.96,
+          description: `Issue ${i}`,
+          file_path: 'src/test.js',
+          line_number: i + 1,
+          category: 'test',
+          originalCode: `old${i}`,
+          suggestedCode: `new${i}`,
+        }));
 
       const inlineComments = orchestrator.generateInlineComments(suggestions);
 
@@ -320,14 +327,14 @@ describe('AnalysisOrchestrator', () => {
           line_number: 5,
           category: 'security',
           originalCode: 'unsafe code',
-          suggestedCode: 'safe code'
+          suggestedCode: 'safe code',
         },
         {
           confidence: 0.85,
           description: 'High priority issue',
           file_path: 'src/other.js',
-          category: 'performance'
-        }
+          category: 'performance',
+        },
       ];
 
       const comment = orchestrator.formatSuggestionsAsComment(suggestions);

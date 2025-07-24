@@ -170,7 +170,7 @@ cmd_analyze() {
 
         # Fallback to posting a failure comment
         warning "AI analysis failed - posting error comment to PR"
-        
+
         # Post error comment to PR using gh CLI
         if command -v gh &> /dev/null && [[ -n "${GITHUB_TOKEN:-}" ]]; then
             gh pr comment "$pr_number" --body "## ⚠️ AI Review Failed

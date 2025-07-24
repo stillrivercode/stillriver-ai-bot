@@ -79,11 +79,11 @@ class GitHubAPIService {
   callGitHubAPI(endpoint, method = 'GET', data = null) {
     try {
       let command = `gh api "${endpoint}"`;
-      
+
       if (method !== 'GET') {
         command += ` --method ${method}`;
       }
-      
+
       if (data) {
         command += ` --input -`;
       }
@@ -234,7 +234,7 @@ class GitHubAPIService {
           GITHUB_TOKEN: this.token,
         },
       });
-      
+
       return { success: true, output: response.trim() };
     } catch (error) {
       throw new Error(`Failed to post comment to PR ${prNumber}: ${error.message}`);
@@ -292,7 +292,7 @@ class GitHubAPIService {
       // Use gh CLI to post review comment on specific line
       const escapedBody = comment.body.replace(/"/g, '\\"').replace(/\n/g, '\\n');
       const command = `gh pr comment ${prNumber} --body "${escapedBody}"`;
-      
+
       const response = execSync(command, {
         encoding: 'utf8',
         env: {
@@ -300,7 +300,7 @@ class GitHubAPIService {
           GITHUB_TOKEN: this.token,
         },
       });
-      
+
       return { success: true, output: response.trim() };
     } catch (error) {
       throw new Error(`Failed to post inline comment to PR ${prNumber}: ${error.message}`);

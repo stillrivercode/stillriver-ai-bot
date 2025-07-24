@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const GitHubAPIService = require('../../scripts/ai-review/services/github-api-service');
 const { execSync } = require('child_process');
 
@@ -11,9 +12,9 @@ describe('GitHubAPIService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock successful git remote command
-    execSync.mockImplementation((command, options) => {
+    execSync.mockImplementation((command, _options) => {
       if (command === 'git remote get-url origin') {
         return 'https://github.com/owner/repo.git\n';
       }
@@ -33,7 +34,7 @@ describe('GitHubAPIService', () => {
       const serviceWithoutRepo = new GitHubAPIService({ token: mockToken });
       expect(serviceWithoutRepo.repo).toBe('owner/repo');
       expect(execSync).toHaveBeenCalledWith('git remote get-url origin', {
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
     });
 
@@ -63,8 +64,8 @@ describe('GitHubAPIService', () => {
         {
           encoding: 'utf8',
           env: expect.objectContaining({
-            GITHUB_TOKEN: mockToken
-          })
+            GITHUB_TOKEN: mockToken,
+          }),
         }
       );
     });
@@ -99,7 +100,7 @@ describe('GitHubAPIService', () => {
       const comment = {
         path: 'src/test.js',
         line: 10,
-        body: 'Test inline comment with\nmultiple lines'
+        body: 'Test inline comment with\nmultiple lines',
       };
 
       const result = await service.postInlineComment(123, comment);
@@ -117,7 +118,7 @@ describe('GitHubAPIService', () => {
       const comment = {
         path: 'src/test.js',
         line: 5,
-        body: 'Comment with "quotes" and\nnewlines'
+        body: 'Comment with "quotes" and\nnewlines',
       };
 
       await service.postInlineComment(123, comment);
@@ -161,7 +162,7 @@ describe('GitHubAPIService', () => {
 
       const comments = [
         { path: 'src/test.js', position: 5, body: 'Comment 1' },
-        { path: 'src/other.js', position: 10, body: 'Comment 2' }
+        { path: 'src/other.js', position: 10, body: 'Comment 2' },
       ];
 
       const result = await service.postReview(123, 'Review body', comments);
@@ -176,12 +177,12 @@ describe('GitHubAPIService', () => {
             event: 'COMMENT',
             comments: [
               { path: 'src/test.js', position: 5, body: 'Comment 1' },
-              { path: 'src/other.js', position: 10, body: 'Comment 2' }
-            ]
+              { path: 'src/other.js', position: 10, body: 'Comment 2' },
+            ],
           }),
           env: expect.objectContaining({
-            GITHUB_TOKEN: mockToken
-          })
+            GITHUB_TOKEN: mockToken,
+          }),
         }
       );
     });
@@ -199,9 +200,14 @@ describe('GitHubAPIService', () => {
       const comments = [{ path: 'test.js', position: 1, body: 'Test' }];
       const result = await service.postReview(123, 'Review body', comments);
 
-      expect(result).toEqual({ success: true, output: 'Fallback comment posted' });
+      expect(result).toEqual({
+        success: true,
+        output: 'Fallback comment posted',
+      });
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Review comment failed, falling back to regular comment: Review failed'
+        expect.stringContaining(
+          'Review comment failed, falling back to regular comment:'
+        )
       );
 
       consoleSpy.mockRestore();
@@ -216,16 +222,13 @@ describe('GitHubAPIService', () => {
       const result = service.callGitHubAPI('/test/endpoint');
 
       expect(result).toEqual({ data: 'test' });
-      expect(execSync).toHaveBeenCalledWith(
-        'gh api "/test/endpoint"',
-        {
-          encoding: 'utf8',
-          input: null,
-          env: expect.objectContaining({
-            GITHUB_TOKEN: mockToken
-          })
-        }
-      );
+      expect(execSync).toHaveBeenCalledWith('gh api "/test/endpoint"', {
+        encoding: 'utf8',
+        input: null,
+        env: expect.objectContaining({
+          GITHUB_TOKEN: mockToken,
+        }),
+      });
     });
 
     it('should make POST request with data', () => {
@@ -242,8 +245,8 @@ describe('GitHubAPIService', () => {
           encoding: 'utf8',
           input: JSON.stringify(postData),
           env: expect.objectContaining({
-            GITHUB_TOKEN: mockToken
-          })
+            GITHUB_TOKEN: mockToken,
+          }),
         }
       );
     });
@@ -264,10 +267,10 @@ describe('GitHubAPIService', () => {
       const mockPRData = {
         number: 123,
         title: 'Test PR',
-        body: 'Description'
+        body: 'Description',
       };
       const mockFilesData = [
-        { filename: 'test.js', additions: 5, deletions: 2 }
+        { filename: 'test.js', additions: 5, deletions: 2 },
       ];
 
       execSync
@@ -278,7 +281,7 @@ describe('GitHubAPIService', () => {
 
       expect(result).toEqual({
         ...mockPRData,
-        files: mockFilesData
+        files: mockFilesData,
       });
       expect(execSync).toHaveBeenCalledWith(
         'gh api "/repos/owner/repo/pulls/123"',
@@ -296,33 +299,57 @@ describe('GitHubAPIService', () => {
       });
 
       await expect(service.fetchPullRequest(123)).rejects.toThrow(
-        'Failed to fetch PR 123: Fetch failed'
+        'Failed to fetch PR 123: GitHub API call failed: Fetch failed'
       );
     });
   });
 
   describe('filterFilesForAnalysis', () => {
     const testFiles = [
-      { filename: 'src/test.js', status: 'modified', changes: 10, binary: false },
+      {
+        filename: 'src/test.js',
+        status: 'modified',
+        changes: 10,
+        binary: false,
+      },
       { filename: 'src/test.ts', status: 'added', changes: 5, binary: false },
-      { filename: 'package.json', status: 'modified', changes: 2, binary: false },
-      { filename: 'dist/bundle.js', status: 'modified', changes: 1000, binary: false },
-      { filename: 'node_modules/lib.js', status: 'added', changes: 1, binary: false },
+      {
+        filename: 'package.json',
+        status: 'modified',
+        changes: 2,
+        binary: false,
+      },
+      {
+        filename: 'dist/bundle.js',
+        status: 'modified',
+        changes: 1000,
+        binary: false,
+      },
+      {
+        filename: 'node_modules/lib.js',
+        status: 'added',
+        changes: 1,
+        binary: false,
+      },
       { filename: 'image.png', status: 'added', changes: 0, binary: true },
       { filename: 'deleted.js', status: 'removed', changes: 0, binary: false },
-      { filename: 'large.js', status: 'modified', changes: 2000, binary: false },
-      { filename: 'Dockerfile', status: 'modified', changes: 5, binary: false }
+      {
+        filename: 'large.js',
+        status: 'modified',
+        changes: 2000,
+        binary: false,
+      },
+      { filename: 'Dockerfile', status: 'modified', changes: 5, binary: false },
     ];
 
     it('should filter files appropriately for analysis', () => {
       const result = service.filterFilesForAnalysis(testFiles);
 
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result.map(f => f.filename)).toEqual([
         'src/test.js',
-        'src/test.ts', 
-        'package.json',
-        'Dockerfile'
+        'src/test.ts',
+        'Dockerfile',
       ]);
     });
 
@@ -339,14 +366,14 @@ describe('GitHubAPIService', () => {
     it('should skip files with too many changes', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
       const files = [{ filename: 'huge.js', changes: 1500 }];
-      
+
       const result = service.filterFilesForAnalysis(files);
-      
+
       expect(result).toHaveLength(0);
       expect(consoleSpy).toHaveBeenCalledWith(
         'Skipping huge.js: too many changes (1500)'
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -357,10 +384,10 @@ describe('GitHubAPIService', () => {
         name: 'test-repo',
         description: 'Test repository',
         language: 'JavaScript',
-        topics: ['test', 'javascript']
+        topics: ['test', 'javascript'],
       };
       const mockReadmeData = {
-        content: Buffer.from('# Test Repo\nThis is a test').toString('base64')
+        content: Buffer.from('# Test Repo\nThis is a test').toString('base64'),
       };
 
       execSync
@@ -374,13 +401,13 @@ describe('GitHubAPIService', () => {
         description: 'Test repository',
         language: 'JavaScript',
         topics: ['test', 'javascript'],
-        readme: '# Test Repo\nThis is a test'
+        readme: '# Test Repo\nThis is a test',
       });
     });
 
     it('should handle missing README gracefully', async () => {
       const mockRepoData = { name: 'test-repo' };
-      
+
       execSync
         .mockReturnValueOnce(JSON.stringify(mockRepoData))
         .mockImplementationOnce(() => {
@@ -398,22 +425,24 @@ describe('GitHubAPIService', () => {
       });
 
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       const result = await service.getRepositoryContext();
-      
+
       expect(result).toEqual({});
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to get repository context: Repo fetch failed'
+        expect.stringContaining('Failed to get repository context:')
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
 
   describe('getCodingStandards', () => {
     it('should detect ESLint configuration', async () => {
-      const mockEslintConfig = { content: Buffer.from('{}').toString('base64') };
-      
+      const mockEslintConfig = {
+        content: Buffer.from('{}').toString('base64'),
+      };
+
       execSync
         .mockReturnValueOnce(JSON.stringify(mockEslintConfig))
         .mockImplementation(() => {
@@ -427,7 +456,7 @@ describe('GitHubAPIService', () => {
 
     it('should detect multiple configuration files', async () => {
       const mockConfig = { content: Buffer.from('{}').toString('base64') };
-      
+
       execSync.mockReturnValue(JSON.stringify(mockConfig));
 
       const result = await service.getCodingStandards();

@@ -1,6 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 // Mock child_process for shell script execution
 jest.mock('child_process');
@@ -10,17 +9,17 @@ describe('AI Review Integration Tests', () => {
   const mockEnv = {
     GITHUB_TOKEN: 'test-token',
     OPENROUTER_API_KEY: 'test-api-key',
-    AI_ENABLE_INLINE_COMMENTS: 'true'
+    AI_ENABLE_INLINE_COMMENTS: 'true',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Set up environment variables
     Object.assign(process.env, mockEnv);
-    
+
     // Mock git commands
-    execSync.mockImplementation((command) => {
+    execSync.mockImplementation(command => {
       if (command === 'git remote get-url origin') {
         return 'https://github.com/test/repo.git';
       }
@@ -42,8 +41,6 @@ describe('AI Review Integration Tests', () => {
   });
 
   describe('ai-review-resolvable.sh script', () => {
-    const scriptPath = path.resolve(__dirname, '../../scripts/ai-review-resolvable.sh');
-
     it('should handle successful analysis with suggestions', async () => {
       // Mock successful orchestrator execution
       const mockSuggestions = [
@@ -52,12 +49,12 @@ describe('AI Review Integration Tests', () => {
           confidence: 0.85,
           category: 'best_practices',
           file_path: 'src/test.js',
-          line_number: 5
-        }
+          line_number: 5,
+        },
       ];
 
       // Mock orchestrator CLI to return suggestions
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('analysis-orchestrator-cli.js')) {
           return JSON.stringify(mockSuggestions);
         }
@@ -79,7 +76,7 @@ describe('AI Review Integration Tests', () => {
 
     it('should handle no suggestions scenario', async () => {
       // Mock orchestrator returning empty suggestions
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('analysis-orchestrator-cli.js')) {
           return JSON.stringify([]);
         }
@@ -97,7 +94,7 @@ describe('AI Review Integration Tests', () => {
 
     it('should handle analysis failure gracefully', async () => {
       // Mock orchestrator failure
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('analysis-orchestrator-cli.js')) {
           throw new Error('Analysis failed');
         }
@@ -122,7 +119,7 @@ describe('AI Review Integration Tests', () => {
         AI_MODEL: 'google/gemini-2.5-pro',
         PR_NUMBER: '456',
         BASE_SHA: 'base123',
-        HEAD_SHA: 'head456'
+        HEAD_SHA: 'head456',
       };
 
       Object.assign(process.env, workflowEnv);
@@ -164,7 +161,7 @@ describe('AI Review Integration Tests', () => {
     });
 
     it('should handle GitHub API failures', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('gh')) {
           throw new Error('GitHub API rate limit exceeded');
         }
@@ -192,7 +189,7 @@ describe('AI Review Integration Tests', () => {
       const suggestions = [
         { confidence: 0.96, category: 'security', severity: 'critical' },
         { confidence: 0.85, category: 'performance', severity: 'medium' },
-        { confidence: 0.70, category: 'style', severity: 'low' }
+        { confidence: 0.7, category: 'style', severity: 'low' },
       ];
 
       const comment = formatSuggestionsComment(suggestions, true, 'head456');
@@ -206,7 +203,7 @@ describe('AI Review Integration Tests', () => {
 
     it('should handle inline comments disabled scenario', () => {
       const suggestions = [
-        { confidence: 0.96, category: 'security', severity: 'critical' }
+        { confidence: 0.96, category: 'security', severity: 'critical' },
       ];
 
       const comment = formatSuggestionsComment(suggestions, false, 'head456');
@@ -223,7 +220,7 @@ describe('AI Review Integration Tests', () => {
         description: 'Test suggestion',
         confidence: 0.85,
         category: 'test',
-        file_path: 'test.js'
+        file_path: 'test.js',
       };
 
       const isValid = validateSuggestion(validSuggestion);
@@ -235,7 +232,7 @@ describe('AI Review Integration Tests', () => {
         {}, // Missing required fields
         { description: 'Test' }, // Missing confidence
         { description: 'Test', confidence: 1.5 }, // Invalid confidence range
-        { description: 'Test', confidence: 0.8 } // Missing category
+        { description: 'Test', confidence: 0.8 }, // Missing category
       ];
 
       invalidSuggestions.forEach(suggestion => {
@@ -246,6 +243,7 @@ describe('AI Review Integration Tests', () => {
   });
 
   // Helper functions for simulation
+  /* eslint-disable @typescript-eslint/explicit-function-return-type */
   async function simulateScriptExecution(command, prNumber) {
     try {
       // Validate required environment variables
@@ -262,9 +260,9 @@ describe('AI Review Integration Tests', () => {
           // This would call the orchestrator
           const mockCall = `analysis-orchestrator-cli.js --pr-number ${prNumber}`;
           const result = execSync(mockCall);
-          
+
           const suggestions = JSON.parse(result);
-          
+
           if (suggestions.length === 0) {
             // Post no-suggestions comment
             execSync(`gh pr comment ${prNumber} --body "Summary comment"`);
@@ -274,7 +272,7 @@ describe('AI Review Integration Tests', () => {
             execSync(`gh pr comment ${prNumber} --body "Suggestions comment"`);
             return { success: true, commentsPosted: 2 }; // Summary + details
           }
-        } catch (error) {
+        } catch {
           // Post error comment
           execSync(`gh pr comment ${prNumber} --body "Error comment"`);
           return { success: false, errorCommentPosted: true };
@@ -307,20 +305,22 @@ describe('AI Review Integration Tests', () => {
 The code changes in this pull request meet quality standards and are ready for human review.
 
 ---
-*AI Review completed at ${new Date().toISOString()}*  
+*AI Review completed at ${new Date().toISOString()}*
 *Analysis ID: ${headSha.substring(0, 8)}*`;
   }
 
   function formatSuggestionsComment(suggestions, inlineEnabled, headSha) {
-    const reviewType = inlineEnabled ? 'Resolvable Comments' : 'Enhanced Comments';
+    const reviewType = inlineEnabled
+      ? 'Resolvable Comments'
+      : 'Enhanced Comments';
     const stats = generateStats(suggestions);
-    
+
     let comment = `## 🤖 AI Review by ${reviewType}\n\n`;
-    
+
     if (stats.very_high > 0 && inlineEnabled) {
       comment += `🔒 **${stats.very_high} critical suggestion${stats.very_high !== 1 ? 's' : ''} require immediate attention** (resolvable)\n\n`;
     }
-    
+
     comment += `### Analysis Summary
 - **Total Suggestions**: ${suggestions.length}
 - **Critical** (≥95%): ${stats.very_high} ${inlineEnabled ? '(resolvable)' : '(high priority)'}
@@ -329,35 +329,47 @@ The code changes in this pull request meet quality standards and are ready for h
 - **Low** (<65%): ${stats.low} (suppressed)
 
 ---
-*AI Review completed at ${new Date().toISOString()}*  
+*AI Review completed at ${new Date().toISOString()}*
 *Analysis ID: ${headSha.substring(0, 8)}*`;
 
     return comment;
   }
 
   function generateStats(suggestions) {
-    return suggestions.reduce((stats, s) => {
-      if (s.confidence >= 0.95) stats.very_high++;
-      else if (s.confidence >= 0.8) stats.high++;
-      else if (s.confidence >= 0.65) stats.medium++;
-      else stats.low++;
-      return stats;
-    }, { very_high: 0, high: 0, medium: 0, low: 0 });
+    return suggestions.reduce(
+      (stats, s) => {
+        if (s.confidence >= 0.95) {
+          stats.very_high++;
+        } else if (s.confidence >= 0.8) {
+          stats.high++;
+        } else if (s.confidence >= 0.65) {
+          stats.medium++;
+        } else {
+          stats.low++;
+        }
+        return stats;
+      },
+      { very_high: 0, high: 0, medium: 0, low: 0 }
+    );
   }
 
   function validateSuggestion(suggestion) {
     const required = ['description', 'confidence', 'category'];
-    
+
     for (const field of required) {
-      if (!suggestion[field]) return false;
+      if (!suggestion[field]) {
+        return false;
+      }
     }
-    
-    if (typeof suggestion.confidence !== 'number' || 
-        suggestion.confidence < 0 || 
-        suggestion.confidence > 1) {
+
+    if (
+      typeof suggestion.confidence !== 'number' ||
+      suggestion.confidence < 0 ||
+      suggestion.confidence > 1
+    ) {
       return false;
     }
-    
+
     return true;
   }
 });
