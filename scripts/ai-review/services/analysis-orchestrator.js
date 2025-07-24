@@ -44,7 +44,9 @@ class AnalysisOrchestrator {
         return [];
       }
 
-      console.log(`📁 Analyzing ${analysisFiles.length} of ${prData.files.length} files (${prData.files.length - analysisFiles.length} filtered out)...`);
+      console.log(
+        `📁 Analyzing ${analysisFiles.length} of ${prData.files.length} files (${prData.files.length - analysisFiles.length} filtered out)...`
+      );
 
       // Build analysis context
       const analysisContext = {
@@ -465,7 +467,6 @@ The code changes in this pull request meet quality standards and are ready for a
       ? 'Resolvable Comments'
       : 'Enhanced Comments';
     const hasResolvable = stats.by_confidence.very_high > 0;
-    const hasHigh = stats.by_confidence.high > 0;
     const recommendation = this.generateApprovalRecommendation(stats);
 
     let summary = `## 🤖 AI Review by ${reviewType}\n\n`;
@@ -529,9 +530,13 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
     const percentage = Math.round(avgConfidence * 100);
 
     let label = 'Low';
-    if (percentage >= 85) label = 'Very High';
-    else if (percentage >= 75) label = 'High';
-    else if (percentage >= 60) label = 'Medium';
+    if (percentage >= 85) {
+      label = 'Very High';
+    } else if (percentage >= 75) {
+      label = 'High';
+    } else if (percentage >= 60) {
+      label = 'Medium';
+    }
 
     return { percentage, label };
   }
@@ -540,14 +545,23 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
    * Determine analysis quality based on suggestion distribution
    */
   getAnalysisQuality(stats, totalSuggestions) {
-    const criticalRatio = stats.by_confidence.very_high / Math.max(totalSuggestions, 1);
+    const criticalRatio =
+      stats.by_confidence.very_high / Math.max(totalSuggestions, 1);
     const highRatio = stats.by_confidence.high / Math.max(totalSuggestions, 1);
     const significantRatio = criticalRatio + highRatio;
 
-    if (totalSuggestions === 0) return 'Complete';
-    if (significantRatio > 0.7) return 'Comprehensive';
-    if (significantRatio > 0.4) return 'Thorough';
-    if (significantRatio > 0.2) return 'Good';
+    if (totalSuggestions === 0) {
+      return 'Complete';
+    }
+    if (significantRatio > 0.7) {
+      return 'Comprehensive';
+    }
+    if (significantRatio > 0.4) {
+      return 'Thorough';
+    }
+    if (significantRatio > 0.2) {
+      return 'Good';
+    }
     return 'Basic';
   }
 
@@ -557,13 +571,12 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
   generateApprovalRecommendation(stats) {
     const hasCritical = stats.by_confidence.very_high > 0;
     const hasHigh = stats.by_confidence.high > 0;
-    const totalBlockingIssues = stats.by_confidence.very_high + stats.by_confidence.high;
 
     if (hasCritical) {
       return {
         action: 'CHANGES REQUESTED',
         icon: '🚫',
-        reasoning: `Critical issues (${stats.by_confidence.very_high}) must be addressed before approval. These represent potential bugs, security vulnerabilities, or significant maintainability concerns.`
+        reasoning: `Critical issues (${stats.by_confidence.very_high}) must be addressed before approval. These represent potential bugs, security vulnerabilities, or significant maintainability concerns.`,
       };
     }
 
@@ -571,7 +584,7 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
       return {
         action: 'CHANGES REQUESTED',
         icon: '⚠️',
-        reasoning: `Multiple high-confidence issues (${stats.by_confidence.high}) should be addressed before approval to maintain code quality standards.`
+        reasoning: `Multiple high-confidence issues (${stats.by_confidence.high}) should be addressed before approval to maintain code quality standards.`,
       };
     }
 
@@ -579,7 +592,7 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
       return {
         action: 'APPROVE WITH SUGGESTIONS',
         icon: '✅',
-        reasoning: `${stats.by_confidence.high} high-confidence suggestion${stats.by_confidence.high !== 1 ? 's' : ''} identified. Consider addressing these improvements, but they don't block approval.`
+        reasoning: `${stats.by_confidence.high} high-confidence suggestion${stats.by_confidence.high !== 1 ? 's' : ''} identified. Consider addressing these improvements, but they don't block approval.`,
       };
     }
 
@@ -587,14 +600,15 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
       return {
         action: 'APPROVE',
         icon: '✅',
-        reasoning: `Only minor suggestions found (${stats.by_confidence.medium} medium confidence). The code meets quality standards for approval.`
+        reasoning: `Only minor suggestions found (${stats.by_confidence.medium} medium confidence). The code meets quality standards for approval.`,
       };
     }
 
     return {
       action: 'APPROVE',
       icon: '✅',
-      reasoning: 'All suggestions are low confidence. The code is ready for approval.'
+      reasoning:
+        'All suggestions are low confidence. The code is ready for approval.',
     };
   }
 

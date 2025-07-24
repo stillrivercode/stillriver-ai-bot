@@ -203,10 +203,21 @@ class GitHubAPIService {
 
       // Include specific important files without extensions or with special names
       const importantFiles = [
-        'Dockerfile', 'Makefile', 'Jenkinsfile', 'Vagrantfile',
-        'Rakefile', 'Guardfile', 'Procfile', 'requirements.txt',
-        'setup.py', 'pyproject.toml', 'Cargo.toml', 'go.mod',
-        'composer.json', 'Gemfile', 'CMakeLists.txt'
+        'Dockerfile',
+        'Makefile',
+        'Jenkinsfile',
+        'Vagrantfile',
+        'Rakefile',
+        'Guardfile',
+        'Procfile',
+        'requirements.txt',
+        'setup.py',
+        'pyproject.toml',
+        'Cargo.toml',
+        'go.mod',
+        'composer.json',
+        'Gemfile',
+        'CMakeLists.txt',
       ];
       const filename = file.filename.split('/').pop();
       if (importantFiles.includes(filename)) {
@@ -216,8 +227,14 @@ class GitHubAPIService {
       // Include files with important base names (case insensitive)
       const baseName = filename.toLowerCase();
       const importantBaseNames = [
-        'readme', 'license', 'changelog', 'contributing',
-        'claude', 'gemini', 'openai', 'anthropic'
+        'readme',
+        'license',
+        'changelog',
+        'contributing',
+        'claude',
+        'gemini',
+        'openai',
+        'anthropic',
       ];
       if (importantBaseNames.some(name => baseName.startsWith(name))) {
         return true;
