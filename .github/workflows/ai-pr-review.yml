@@ -336,7 +336,8 @@ jobs:
 
               // Create missing labels with appropriate colors and descriptions
               const labelDefinitions = {
-                'ai-reviewed-resolvable': { color: '9F4F96', description: 'Reviewed by AI with resolvable comments' }
+                'ai-reviewed-resolvable': { color: '9F4F96', description: 'Reviewed by AI with resolvable comments' },
+                'ai-reviewed': { color: '9F4F96', description: 'Reviewed by AI PR review system' }
               };
 
               for (const labelName of labelsToAdd) {
@@ -384,8 +385,12 @@ jobs:
               }
             };
 
-            // Add label to indicate this PR was reviewed with AI resolvable comments
-            const labels = ['ai-reviewed-resolvable'];
+            // Determine which label to use based on inline comments setting
+            const inlineCommentsEnabled = '${{ env.AI_ENABLE_INLINE_COMMENTS }}' !== 'false';
+            const labels = inlineCommentsEnabled ? ['ai-reviewed-resolvable'] : ['ai-reviewed'];
+
+            console.log(`Inline comments enabled: ${inlineCommentsEnabled}`);
+            console.log(`Using label: ${labels[0]}`);
 
             // Use the safe label adding function
             await safeAddLabels(labels);

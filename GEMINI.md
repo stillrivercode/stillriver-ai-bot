@@ -105,7 +105,9 @@ The AI PR Review workflow automatically:
 1. Analyzes pull request changes using OpenRouter API
 2. Applies multi-factor confidence scoring to each suggestion
 3. Posts suggestions as GitHub resolvable comments based on confidence (configurable)
-4. Adds `ai-reviewed-resolvable` label for tracking
+4. Adds appropriate label based on configuration:
+   - `ai-reviewed-resolvable` when inline comments are enabled (default)
+   - `ai-reviewed` when inline comments are disabled
 
 ## Usage Examples
 
