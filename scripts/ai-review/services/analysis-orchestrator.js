@@ -393,7 +393,9 @@ class AnalysisOrchestrator {
 - Best practices adherence
 - Type safety (where applicable)
 
-The code changes in this pull request meet quality standards and are ready for human review.
+## ✅ Recommendation: **APPROVE**
+
+The code changes in this pull request meet quality standards and are ready for approval. No blocking issues were identified.
 
 ---
 *AI Review completed at ${new Date().toISOString()}*
@@ -462,6 +464,8 @@ The code changes in this pull request meet quality standards and are ready for h
       ? 'Resolvable Comments'
       : 'Enhanced Comments';
     const hasResolvable = stats.by_confidence.very_high > 0;
+    const hasHigh = stats.by_confidence.high > 0;
+    const recommendation = this.generateApprovalRecommendation(stats);
 
     let summary = `## 🤖 AI Review by ${reviewType}\n\n`;
 
@@ -481,6 +485,9 @@ ${Object.entries(stats.by_category)
   .map(([category, count]) => `- **${category}**: ${count}`)
   .join('\n')}`;
 
+    // Add approval recommendation
+    summary += `\n\n${recommendation.icon} **Recommendation: ${recommendation.action}**\n\n${recommendation.reasoning}`;
+
     if (hasResolvable && inlineEnabled) {
       summary += `\n\n### 📝 Action Required
 Please review and resolve the critical suggestions marked with 🔒 below. These can be applied with one click using GitHub's suggestion feature.`;
@@ -491,6 +498,53 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
 *Model: ${this.options.model || 'default'} | Analysis ID: ${prData.head.sha.substring(0, 8)}*`;
 
     return summary;
+  }
+
+  /**
+   * Generate approval recommendation based on suggestion statistics
+   */
+  generateApprovalRecommendation(stats) {
+    const hasCritical = stats.by_confidence.very_high > 0;
+    const hasHigh = stats.by_confidence.high > 0;
+    const totalBlockingIssues = stats.by_confidence.very_high + stats.by_confidence.high;
+
+    if (hasCritical) {
+      return {
+        action: 'CHANGES REQUESTED',
+        icon: '🚫',
+        reasoning: `Critical issues (${stats.by_confidence.very_high}) must be addressed before approval. These represent potential bugs, security vulnerabilities, or significant maintainability concerns.`
+      };
+    }
+
+    if (hasHigh && stats.by_confidence.high >= 3) {
+      return {
+        action: 'CHANGES REQUESTED',
+        icon: '⚠️',
+        reasoning: `Multiple high-confidence issues (${stats.by_confidence.high}) should be addressed before approval to maintain code quality standards.`
+      };
+    }
+
+    if (hasHigh) {
+      return {
+        action: 'APPROVE WITH SUGGESTIONS',
+        icon: '✅',
+        reasoning: `${stats.by_confidence.high} high-confidence suggestion${stats.by_confidence.high !== 1 ? 's' : ''} identified. Consider addressing these improvements, but they don't block approval.`
+      };
+    }
+
+    if (stats.by_confidence.medium > 0) {
+      return {
+        action: 'APPROVE',
+        icon: '✅',
+        reasoning: `Only minor suggestions found (${stats.by_confidence.medium} medium confidence). The code meets quality standards for approval.`
+      };
+    }
+
+    return {
+      action: 'APPROVE',
+      icon: '✅',
+      reasoning: 'All suggestions are low confidence. The code is ready for approval.'
+    };
   }
 
   /**
