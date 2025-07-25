@@ -211,14 +211,34 @@ jobs:
 
     - name: Verify dist files are committed
       run: |
-        echo "Verifying dist files are included in the latest commit..."
-        git show --name-only HEAD | grep -E "^dist/" || {
-          echo "ERROR: dist files not found in latest commit"
-          echo "Files in latest commit:"
-          git show --name-only HEAD
+        echo "Verifying dist files are properly handled..."
+
+        # Check if dist files exist in working directory
+        if [ ! -f "dist/index.js" ]; then
+          echo "ERROR: dist/index.js not found in working directory"
           exit 1
-        }
-        echo "✅ dist files successfully committed"
+        fi
+
+        # Check if dist files are in the latest commit OR unchanged since last commit
+        if git show --name-only HEAD | grep -E "^dist/" > /dev/null; then
+          echo "✅ dist files found in latest commit"
+        else
+          echo "dist files not in latest commit, checking if they're unchanged..."
+
+          # Check if dist files have any uncommitted changes
+          if git diff --quiet HEAD -- dist/; then
+            echo "✅ dist files are up-to-date (no changes since last commit)"
+          else
+            echo "ERROR: dist files have uncommitted changes but weren't included in commit"
+            echo "Files in latest commit:"
+            git show --name-only HEAD
+            echo "Uncommitted dist changes:"
+            git diff --name-only HEAD -- dist/
+            exit 1
+          fi
+        fi
+
+        echo "✅ dist files verification passed"
 
     - name: Push version update
       run: git push origin main
