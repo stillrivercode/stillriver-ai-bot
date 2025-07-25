@@ -1,0 +1,57 @@
+[
+  {
+    "confidence": 0.97,
+    "category": "Security",
+    "description": "SQL injection vulnerability detected",
+    "suggested_code": "const sanitizedInput = escapeHtml(userInput);",
+    "file_path": "src/database.js",
+    "line_start": 42,
+    "line_end": 42
+  },
+  {
+    "confidence": 0.99,
+    "category": "Security",
+    "description": "Potential null pointer exception",
+    "suggested_code": "if (user && user.profile) {\n    return user.profile.name;\n}\nreturn 'Anonymous';",
+    "file_path": "src/user.js",
+    "line_start": 15,
+    "line_end": 18
+  },
+  {
+    "confidence": 0.87,
+    "category": "Performance",
+    "description": "Consider caching this expensive computation",
+    "suggested_code": "const memoizedResult = useMemo(() => expensiveCalculation(data), [data]);",
+    "file_path": "src/components/Dashboard.jsx",
+    "line_start": 78
+  },
+  {
+    "confidence": 0.72,
+    "category": "Style",
+    "description": "Consider extracting this logic into a separate function for better readability",
+    "file_path": "src/utils.js",
+    "line_start": 102
+  },
+  {
+    "confidence": 0.92,
+    "category": "Quality",
+    "description": "Use strict equality operator for comparison",
+    "suggested_code": "if (value === undefined) {",
+    "file_path": "src/validation.js",
+    "line_start": 34
+  },
+  {
+    "confidence": 0.45,
+    "category": "Architecture",
+    "description": "Consider using a state management library for complex state",
+    "file_path": "src/App.jsx",
+    "line_start": 200
+  },
+  {
+    "confidence": 0.58,
+    "category": "Performance",
+    "description": "This might benefit from lazy loading",
+    "file_path": "src/routes.js",
+    "line_start": 45
+  }
+]

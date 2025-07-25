@@ -66,12 +66,21 @@
   "scripts": {
     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "jest",
-    "lint": "eslint --ext .js,.ts,.jsx,.tsx src/ tests/ --fix",
+    "test:ai-review": "jest tests/ai-review/ --verbose",
+    "test:ai-review-working": "jest tests/ai-review/analysis-orchestrator.test.js tests/ai-review/github-api-service.test.js tests/ai-review/integration.test.js --verbose",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint --ext .js,.ts,.jsx,.tsx src/ tests/ --fix --max-warnings 0",
     "lint:yaml": "yamllint -d relaxed *.yml *.yaml .github/workflows/*.yml .github/workflows/*.yaml || echo 'No YAML files to lint'",
-    "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js . || echo 'No security issues found'",
+    "lint:security": "eslint --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js .",
     "setup": "echo 'AI-powered GitHub workflow automation' && echo 'Use Information Dense Keywords commands via: npm run idk'",
     "idk": "npx @stillrivercode/information-dense-keywords",
-    "idk:update": "npm update @stillrivercode/information-dense-keywords"
+    "idk:update": "npm update @stillrivercode/information-dense-keywords",
+    "ai-review": "./scripts/ai-review/format-suggestions.sh",
+    "ai-review-validate": "./scripts/ai-review/validate-suggestions.sh",
+    "ai-review-resolvable": "./scripts/ai-review-resolvable.sh",
+    "ai-review-demo": "./scripts/ai-review-resolvable.sh demo",
+    "ai-review-analyze": "./scripts/ai-review-resolvable.sh analyze"
   },
   "main": "package.json"
 }

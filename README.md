@@ -1,6 +1,6 @@
 # AI Workflows
 
-An AI-powered GitHub workflow automation tool with Information Dense Keywords integration.
+An AI-powered GitHub workflow automation tool with AI Resolvable Comments and Information Dense Keywords integration.
 
 ## Getting Started
 
@@ -33,6 +33,80 @@ jobs:
           review_type: 'full'
           max_tokens: 32768
           temperature: 0.7
+```
+
+## AI Resolvable Comments
+
+This action features an advanced AI review system that generates **GitHub's native resolvable suggestions**, transforming AI feedback into actionable, one-click applicable code changes.
+
+### Key Features
+
+- **🎯 Confidence-Based Suggestions**: Multi-factor scoring algorithm evaluates Issue Severity (40%), Static Analysis (30%), Code Context (20%), and Historical Patterns (10%)
+- **✨ Native GitHub Integration**: High-confidence suggestions (≥95%) become GitHub's resolvable suggestions with one-click application
+- **📊 Intelligent Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent cognitive overload
+- **🎚️ Graduated Response**: Different presentation formats based on confidence levels
+- **⚙️ Configurable Inline Comments**: Enable/disable GitHub's native resolvable suggestions via environment variables
+
+### Confidence Thresholds
+
+| Confidence | Type | Description |
+|------------|------|-------------|
+| **≥95%** | 🔒 Resolvable | Critical issues that become GitHub's native resolvable suggestions |
+| **80-94%** | ⚡ Enhanced | High-confidence recommendations with detailed context |
+| **65-79%** | 💡 Regular | Medium-confidence informational comments |
+| **<65%** | ℹ️ Suppressed | Low-confidence suggestions aggregated into summary |
+
+### Configuration
+
+The AI resolvable comments system can be configured via environment variables and repository settings:
+
+#### Environment Variables
+
+- `AI_ENABLE_INLINE_COMMENTS` - Enable/disable GitHub's native resolvable suggestions (default: `true`)
+  - `true`: High-confidence suggestions become resolvable with one-click application
+  - `false`: All suggestions use enhanced format without inline resolution
+- `AI_REVIEW_RATE_LIMIT_MINUTES` - Rate limit between AI reviews (default: `1` minute)
+- `AI_MODEL` - AI model to use for analysis (default: `google/gemini-2.5-pro`)
+
+#### Repository Variables
+
+Set these in your repository's **Settings → Secrets and variables → Actions → Variables**:
+
+- `AI_ENABLE_INLINE_COMMENTS` - Repository-level control over inline comments
+- `AI_REVIEW_RATE_LIMIT_MINUTES` - Repository-level rate limiting configuration
+- `AI_MODEL` - Repository-level AI model selection
+
+#### Usage Examples
+
+```bash
+# Default behavior (inline comments enabled)
+npm run ai-review-resolvable
+
+# Disable inline comments
+AI_ENABLE_INLINE_COMMENTS=false npm run ai-review-resolvable
+
+# Use different model with inline comments disabled
+AI_ENABLE_INLINE_COMMENTS=false AI_MODEL=anthropic/claude-3.5-sonnet npm run ai-review-analyze
+
+# Direct script access
+./scripts/ai-review-resolvable.sh analyze 123
+AI_ENABLE_INLINE_COMMENTS=false ./scripts/ai-review-resolvable.sh analyze 123
+```
+
+### Available Commands
+
+```bash
+# Complete AI review workflow with resolvable comments
+npm run ai-review-resolvable
+
+# Analyze code changes and generate suggestions
+npm run ai-review-analyze
+
+# Demonstration of suggestion formatting
+npm run ai-review-demo
+
+# Direct script access for PR analysis
+./scripts/ai-review-resolvable.sh analyze --pr-number=123
 ```
 
 ## Inputs
@@ -79,11 +153,13 @@ The action automatically prevents duplicate reviews by checking for existing AI 
 
 ### AI Review Format
 
-AI reviews now include dynamic information:
-- **Header**: Reflects the actual AI model used (e.g., "## 🤖 AI Review by Gemini 2.5 Pro")
-- **Content**: Comprehensive analysis based on the selected review type
-- **Footer**: Includes generation timestamp and model details
-- **Length Protection**: Automatically truncates long reviews with clear messaging to stay within GitHub's comment limits
+AI reviews with resolvable comments feature:
+- **Resolvable Suggestions**: High-confidence suggestions (≥95%) appear as GitHub's native resolvable suggestions with one-click application (configurable)
+- **Enhanced Comments**: Medium-high confidence suggestions (80-94%) provide detailed context and rationale
+- **Graduated Response**: Different presentation formats based on confidence levels
+- **Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent cognitive overload
+- **Summary Reports**: Comprehensive analysis with categorized suggestions and confidence metrics
+- **Flexible Configuration**: Inline comments can be disabled, converting resolvable suggestions to enhanced format
 
 ### Review Status
 

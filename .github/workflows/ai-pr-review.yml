@@ -4,6 +4,8 @@ name: AI PR Review
 # Centralized timeout configuration
 env:
   AI_EXECUTION_TIMEOUT_MINUTES: ${{ vars.AI_EXECUTION_TIMEOUT_MINUTES || '10' }}
+  AI_REVIEW_RATE_LIMIT_MINUTES: ${{ vars.AI_REVIEW_RATE_LIMIT_MINUTES || '1' }}
+  AI_ENABLE_INLINE_COMMENTS: ${{ vars.AI_ENABLE_INLINE_COMMENTS || 'true' }}
 
 # Triggers:
 # - When a PR is first opened or moves from draft to ready for review
@@ -84,12 +86,13 @@ jobs:
               per_page: 100
             });
 
-            // Check if there's a recent AI review (within last 5 minutes)
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            // Check if there's a recent AI review (configurable rate limit)
+            const rateLimitMinutes = parseInt(process.env.AI_REVIEW_RATE_LIMIT_MINUTES || '1');
+            const rateLimitAgo = new Date(Date.now() - rateLimitMinutes * 60 * 1000);
             const recentAIReview = comments.data.find(comment =>
               comment.user.login === 'github-actions[bot]' &&
               comment.body.includes('🤖 AI Review by') &&
-              new Date(comment.created_at) > fiveMinutesAgo
+              new Date(comment.created_at) > rateLimitAgo
             );
 
             if (recentAIReview) {
@@ -173,51 +176,41 @@ jobs:
           fetch-depth: 0
 
 
-      - name: Debug - Check if action files exist
+      - name: Setup Node.js for AI review
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
-        run: |
-          echo "Checking action files..."
-          ls -la ./
-          ls -la ./dist/ || echo "dist folder not found"
-          cat action.yml | head -10
-
-      - name: Cache Node Modules
-        if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
-        uses: actions/cache@v4
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Build action for testing
+      - name: Install dependencies
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
-        run: |
-          echo "Building action..."
-          npm ci --cache ~/.npm --prefer-offline
-          npm run build
-          ls -la ./dist/
-          echo "Testing action entry point..."
-          node -e "console.log('Node.js is working')"
-          echo "Checking dist/index.js..."
-          head -20 ./dist/index.js
+        run: npm ci
 
-      - name: Run AI Review
+      - name: Run AI Review with Resolvable Comments
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
         id: ai_review
         continue-on-error: true
-        uses: ./
-        with:
-          github_token: ${{ github.token }}
-          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
-          model: ${{ vars.AI_MODEL || 'google/gemini-2.5-pro' }}
-          review_type: 'full'
-          exclude_patterns: 'package-lock.json,*.lock'
-          request_timeout_seconds: 600
-          max_tokens: 32768
-          temperature: 0.7
-          retries: 3
-          post_comment: true
+        run: |
+          echo "🤖 Running AI Review with Resolvable Comments..."
+
+          # Set environment variables
+          export GITHUB_TOKEN="${{ github.token }}"
+          export OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}"
+          export AI_MODEL="${{ vars.AI_MODEL || 'google/gemini-2.5-pro' }}"
+          export PR_NUMBER="${{ github.event.pull_request.number }}"
+          export BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          export HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Run the AI resolvable comments analysis
+          if ./scripts/ai-review-resolvable.sh analyze "$PR_NUMBER"; then
+            echo "review_status=success" >> $GITHUB_OUTPUT
+            echo "✅ AI Review with resolvable comments completed successfully"
+          else
+            echo "review_status=failure" >> $GITHUB_OUTPUT
+            echo "❌ AI Review with resolvable comments failed"
+            exit 1
+          fi
 
       - name: Debug - Check action step result
         if: (steps.check_tests.outputs.result == 'true' || github.event_name != 'pull_request') && steps.check_recent_review.outputs.skip != 'true'
@@ -231,13 +224,10 @@ jobs:
         run: |
           echo "AI Review Step Outputs:"
           echo "review_status: ${{ steps.ai_review.outputs.review_status }}"
-          echo "review_comment length: ${#REVIEW_COMMENT}"
           echo "Conditions check:"
           echo "check_tests result: ${{ steps.check_tests.outputs.result }}"
           echo "recent_review skip: ${{ steps.check_recent_review.outputs.skip }}"
           echo "ai_review status: ${{ steps.ai_review.outputs.review_status }}"
-        env:
-          REVIEW_COMMENT: ${{ steps.ai_review.outputs.review_comment }}
 
 
       - name: Handle AI review failure
@@ -295,6 +285,22 @@ jobs:
               console.log(`⚠ Failed to post failure comment: ${error.message}`);
             }
 
+            // Remove ai-review-needed label if it exists (since review failed)
+            try {
+              console.log('Removing ai-review-needed label...');
+              await github.rest.issues.removeLabel({
+                ...context.repo,
+                issue_number: context.issue.number,
+                name: 'ai-review-needed'
+              });
+              console.log('✓ Removed ai-review-needed label');
+            } catch (error) {
+              // Label might not exist - that's fine
+              if (error.status !== 404) {
+                console.log(`⚠ Failed to remove ai-review-needed label: ${error.message}`);
+              }
+            }
+
             // Fail the workflow step to indicate the review failure
             core.setFailed('AI review failed - manual review needed');
 
@@ -308,8 +314,6 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const review = (process.env.REVIEW_CONTENT || '').toLowerCase();
-
             // Helper function to safely add labels with auto-creation
             const safeAddLabels = async (labelsToAdd) => {
               if (labelsToAdd.length === 0) return;
@@ -332,10 +336,7 @@ jobs:
 
               // Create missing labels with appropriate colors and descriptions
               const labelDefinitions = {
-                'security-review-needed': { color: 'E99695', description: 'Requires security review' },
-                'performance-impact': { color: 'F9D71C', description: 'May impact performance' },
-                'breaking-change': { color: 'B60205', description: 'Breaking API changes' },
-                'needs-docs': { color: 'BFD4F2', description: 'Documentation updates needed' },
+                'ai-reviewed-resolvable': { color: '9F4F96', description: 'Reviewed by AI with resolvable comments' },
                 'ai-reviewed': { color: '9F4F96', description: 'Reviewed by AI PR review system' }
               };
 
@@ -384,52 +385,15 @@ jobs:
               }
             };
 
-            const labels = [];
+            // Determine which label to use based on inline comments setting
+            const inlineCommentsEnabled = '${{ env.AI_ENABLE_INLINE_COMMENTS }}' !== 'false';
+            const labels = inlineCommentsEnabled ? ['ai-reviewed-resolvable'] : ['ai-reviewed'];
 
-            // Helper function to check if a phrase indicates actual concern vs no concern
-            const hasActualConcern = (text, keywords) => {
-              for (const keyword of keywords) {
-                const regex = new RegExp(`(no|zero|minimal|none|without|negligible)\\s+${keyword}`, 'i');
-                if (regex.test(text)) {
-                  // Found negation before the keyword, so no actual concern
-                  return false;
-                }
-                if (text.includes(keyword)) {
-                  // Found keyword without negation
-                  return true;
-                }
-              }
-              return false;
-            };
-
-            // Add labels based on review content (avoid triggering AI fix workflows)
-            if (hasActualConcern(review, ['security concern', 'security issue', 'security vulnerability', 'security risk'])) {
-              labels.push('security-review-needed');
-            }
-            if (hasActualConcern(review, ['performance impact', 'performance implication', 'performance degradation', 'performance issue'])) {
-              labels.push('performance-impact');
-            }
-            if (hasActualConcern(review, ['breaking change', 'backward incompatible', 'backwards incompatible'])) {
-              labels.push('breaking-change');
-            }
-            if (review.includes('needs documentation') || review.includes('documentation needed') || review.includes('missing documentation')) {
-              labels.push('needs-docs');
-            }
-
-            labels.push('ai-reviewed');
-
-            // Filter out any labels that could trigger AI fix workflows to prevent loops
-            const filteredLabels = labels.filter(label =>
-              !label.startsWith('ai-fix-') &&
-              label !== 'ai-fix-lint' &&
-              label !== 'ai-fix-security' &&
-              label !== 'ai-fix-tests'
-            );
+            console.log(`Inline comments enabled: ${inlineCommentsEnabled}`);
+            console.log(`Using label: ${labels[0]}`);
 
             // Use the safe label adding function
-            await safeAddLabels(filteredLabels);
-        env:
-          REVIEW_CONTENT: ${{ steps.ai_review.outputs.review_comment }}
+            await safeAddLabels(labels);
 
       - name: Remove ai-review-needed label
         if: >

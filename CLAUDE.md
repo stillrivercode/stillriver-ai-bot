@@ -24,7 +24,20 @@ npm run idk:update          # Update IDK package
 ./scripts/create-pr.sh                             # Create pull request
 ./scripts/safe-commit.sh                           # Commit changes safely
 ./scripts/run-security-scan.sh                     # Run security analysis
-./scripts/setup-labels.sh  # Create GitHub repository labels
+./scripts/setup-labels.sh                          # Create GitHub repository labels
+
+# AI Review System (Resolvable Comments)
+npm run ai-review-resolvable                        # Complete AI review workflow with resolvable comments
+npm run ai-review-analyze                           # Analyze code changes and generate suggestions
+npm run ai-review-demo                              # Run demonstration of suggestion formatting
+npm run ai-review                                   # Format AI suggestions with confidence levels
+npm run ai-review-validate                          # Validate AI suggestion JSON format
+
+# Direct script access
+./scripts/ai-review-resolvable.sh analyze          # Analyze PR and post resolvable comments
+./scripts/ai-review-resolvable.sh format           # Format suggestions by confidence level
+./scripts/ai-review-resolvable.sh validate         # Validate suggestion structure
+./scripts/ai-review-resolvable.sh demo             # Show formatting examples
 ```
 
 ## Information Dense Keywords (IDK) Commands
@@ -88,7 +101,13 @@ analyze this authentication system then spec this improved version then plan thi
    - Cost monitoring and security scanning
    - Git operations and GitHub API interactions
 
-4. **Information Dense Keywords** (`@stillrivercode/information-dense-keywords`) - Standardized AI command vocabulary for consistent task execution
+4. **AI Review System** (`scripts/ai-review/`) - Resolvable comments feature with:
+   - Multi-factor confidence scoring algorithm
+   - GitHub suggestion format support
+   - Batch processing and validation tools
+   - Integration with OpenRouter AI analysis service
+
+5. **Information Dense Keywords** (`@stillrivercode/information-dense-keywords`) - Standardized AI command vocabulary for consistent task execution
 
 ### Key Integration Points
 
@@ -116,6 +135,60 @@ The system responds to GitHub issues with specific labels:
 - `inquirer` - Interactive prompts
 - `chalk` - Terminal output formatting
 - `fs-extra` - File system utilities
+
+## AI Resolvable Comments System
+
+The repository now includes an advanced AI review system that generates GitHub's native resolvable suggestions. This system transforms AI feedback into actionable, one-click applicable code changes.
+
+### Key Features
+
+- **Confidence-Based Suggestions**: Uses multi-factor scoring algorithm (Issue Severity 40%, Static Analysis 30%, Code Context 20%, Historical Patterns 10%)
+- **Resolvable Comments**: High-confidence suggestions (≥95%) become GitHub's native resolvable suggestions
+- **Enhanced Comments**: Medium-confidence suggestions (80-94%) provide detailed context
+- **Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent spam
+- **Configurable Inline Comments**: Enable/disable resolvable suggestions via environment variables
+- **Integration**: Seamlessly integrated with existing AI PR Review workflow
+
+### Confidence Thresholds
+
+- **≥95%**: Resolvable suggestion (critical issues only)
+- **80-94%**: Enhanced comment with suggestion context
+- **65-79%**: Regular informational comment
+- **<65%**: Suppressed or aggregated into summary
+
+### Configuration
+
+The AI resolvable comments system can be configured via environment variables:
+
+#### Environment Variables
+- `AI_ENABLE_INLINE_COMMENTS` - Enable/disable GitHub's native resolvable suggestions (default: `true`)
+  - `true`: High-confidence suggestions become resolvable with one-click application
+  - `false`: All suggestions use enhanced format without inline resolution
+
+#### Repository Variables (GitHub Settings > Variables)
+- `AI_ENABLE_INLINE_COMMENTS` - Repository-level control over inline comments
+- `AI_REVIEW_RATE_LIMIT_MINUTES` - Rate limit for AI reviews (default: 1 minute)
+
+#### Script Options
+```bash
+# Enable inline comments (default)
+./scripts/ai-review-resolvable.sh analyze 123
+
+# Disable inline comments
+AI_ENABLE_INLINE_COMMENTS=false ./scripts/ai-review-resolvable.sh analyze 123
+
+# Format script options
+./scripts/ai-review/format-suggestions.sh --enable-inline true
+./scripts/ai-review/format-suggestions.sh --disable-inline
+```
+
+### Workflow Integration
+
+The AI PR Review workflow (`ai-pr-review.yml`) automatically uses the resolvable comments system:
+1. Analyzes PR changes with OpenRouter API
+2. Applies confidence scoring to each suggestion
+3. Posts suggestions as GitHub resolvable comments based on confidence level (configurable)
+4. Adds `ai-reviewed-resolvable` label to indicate completion
 
 ## Development Notes
 

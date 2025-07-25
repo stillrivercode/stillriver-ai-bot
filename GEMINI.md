@@ -11,6 +11,7 @@ The system is designed to respond to GitHub issues with specific labels (e.g., `
 ## Key Features
 
 *   **AI Task Automation:** Workflows that trigger on labeled GitHub issues to perform development tasks.
+*   **AI Resolvable Comments:** Advanced PR review system with GitHub's native resolvable suggestions using confidence-based scoring.
 *   **Automated Code Generation:** AI agents implement features, fix bugs, and write tests based on issue descriptions.
 *   **Automated Pull Requests:** Automatically creates PRs with the AI-generated changes.
 *   **Quality Gates:** Integrates linting, security scanning (Bandit, Semgrep), and automated testing.
@@ -60,7 +61,61 @@ This project uses the `@stillrivercode/information-dense-keywords` package for s
 
 **Core Reference**: See [docs/AI.md](docs/AI.md) for shared AI assistant instructions and usage patterns.
 
+## AI Resolvable Comments System
+
+The repository includes an advanced AI review system that generates GitHub's native resolvable suggestions, transforming AI feedback into actionable, one-click applicable code changes.
+
+### Key Capabilities
+
+*   **Confidence-Based Scoring:** Multi-factor algorithm evaluating Issue Severity (40%), Static Analysis (30%), Code Context (20%), and Historical Patterns (10%)
+*   **Native GitHub Integration:** High-confidence suggestions (≥95%) become GitHub's resolvable suggestions with one-click application
+*   **Intelligent Rate Limiting:** Maximum 5 resolvable suggestions per PR to prevent cognitive overload
+*   **Graduated Response:** Different presentation formats based on confidence levels (resolvable, enhanced, regular, suppressed)
+*   **Configurable Inline Comments:** Enable/disable GitHub's native resolvable suggestions via environment variables
+
+### Confidence Thresholds
+
+*   **≥95% (Resolvable):** Critical issues that become GitHub's native resolvable suggestions
+*   **80-94% (Enhanced):** High-confidence recommendations with detailed context
+*   **65-79% (Regular):** Medium-confidence informational comments
+*   **<65% (Suppressed):** Low-confidence suggestions aggregated into summary
+
+### Configuration Options
+
+The AI resolvable comments system supports flexible configuration:
+
+**Environment Variables:**
+- `AI_ENABLE_INLINE_COMMENTS=true|false` - Control GitHub's native resolvable suggestions
+- `AI_REVIEW_RATE_LIMIT_MINUTES=1` - Rate limit between AI reviews
+
+**Usage Examples:**
+```bash
+# Default behavior (inline comments enabled)
+npm run ai-review-analyze -- 123
+
+# Disable inline comments
+AI_ENABLE_INLINE_COMMENTS=false npm run ai-review-analyze -- 123
+
+# Repository-level configuration via GitHub Variables
+```
+
+### Workflow Integration
+
+The AI PR Review workflow automatically:
+1. Analyzes pull request changes using OpenRouter API
+2. Applies multi-factor confidence scoring to each suggestion
+3. Posts suggestions as GitHub resolvable comments based on confidence (configurable)
+4. Adds appropriate label based on configuration:
+   - `ai-reviewed-resolvable` when inline comments are enabled (default)
+   - `ai-reviewed` when inline comments are disabled
+
 ## Usage Examples
+
+### AI Resolvable Comments Commands
+- `npm run ai-review-resolvable` - Complete AI review workflow with resolvable comments
+- `npm run ai-review-analyze` - Analyze code changes and generate suggestions
+- `npm run ai-review-demo` - Demonstration of suggestion formatting
+- `./scripts/ai-review-resolvable.sh analyze --pr-number=123` - Direct PR analysis
 
 ### Common IDK Commands
 - `create user authentication system` - Generate authentication components

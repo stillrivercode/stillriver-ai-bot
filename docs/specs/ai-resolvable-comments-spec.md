@@ -328,11 +328,25 @@ Consider extracting this logic into a separate function for better readability
 3. **Beta**: Limited production deployment with opt-in teams
 4. **Production**: Full rollout with monitoring and rollback capability
 
-### Feature Flags
-- **Enable/Disable Suggestions**: Global feature toggle
+### Configuration and Feature Flags
+
+#### Environment Variables
+- **`AI_ENABLE_INLINE_COMMENTS`**: Enable/disable GitHub's native resolvable suggestions (default: `true`)
+  - `true`: High-confidence suggestions (≥95%) become GitHub's resolvable suggestions
+  - `false`: All suggestions use enhanced comment format without inline resolution
+- **`AI_REVIEW_RATE_LIMIT_MINUTES`**: Rate limit between AI reviews (default: `1` minute)
+- **`AI_MODEL`**: AI model selection for analysis (default: `google/gemini-2.5-pro`)
+
+#### Repository Variables (GitHub Settings)
+- **`AI_ENABLE_INLINE_COMMENTS`**: Repository-level control over inline comments
+- **`AI_REVIEW_RATE_LIMIT_MINUTES`**: Repository-level rate limiting configuration
+- **`AI_MODEL`**: Repository-level AI model selection
+
+#### Runtime Feature Flags
+- **Enable/Disable Suggestions**: Global feature toggle via environment variables
 - **Confidence Thresholds**: Runtime-adjustable scoring levels
 - **Repository Filtering**: Per-repo enablement control
-- **User Preferences**: Individual developer opt-out capability
+- **User Preferences**: Individual developer opt-out capability via repository settings
 
 ## Maintenance and Operations
 

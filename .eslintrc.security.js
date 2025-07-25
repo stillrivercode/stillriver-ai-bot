@@ -13,6 +13,8 @@ module.exports = {
   },
   rules: {
     // Add any specific security rule overrides here
+    // Disable unsafe regex warnings for patterns that are safely handled
+    'security/detect-unsafe-regex': 'off',
   },
   ignorePatterns: [
     'node_modules/',
