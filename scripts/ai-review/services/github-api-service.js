@@ -359,25 +359,42 @@ class GitHubAPIService {
    */
   async postInlineComment(prNumber, comment) {
     try {
-      // Use gh CLI to post review comment on specific line
-      const escapedBody = comment.body
-        .replace(/"/g, '\\"')
-        .replace(/\n/g, '\\n');
-      const command = `gh pr comment ${prNumber} --body "${escapedBody}"`;
-
-      const response = execSync(command, {
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          GITHUB_TOKEN: this.token,
-        },
-      });
-
-      return { success: true, output: response.trim() };
-    } catch (error) {
-      throw new Error(
-        `Failed to post inline comment to PR ${prNumber}: ${error.message}`
+      // Get PR data to find the commit SHA
+      const prData = this.callGitHubAPI(
+        `/repos/${this.repo}/pulls/${prNumber}`
       );
+      const commitSha = prData.head.sha;
+
+      // Create proper review comment with inline positioning
+      const reviewCommentData = {
+        body: comment.body,
+        commit_id: commitSha,
+        path: comment.path,
+        line: comment.line,
+        side: 'RIGHT', // Comment on the new version of the file
+      };
+
+      const response = this.callGitHubAPI(
+        `/repos/${this.repo}/pulls/${prNumber}/comments`,
+        'POST',
+        reviewCommentData
+      );
+
+      return { success: true, data: response };
+    } catch (error) {
+      // Fallback to regular comment if inline comment fails
+      console.warn(
+        `Inline comment failed for ${comment.path}:${comment.line}, falling back to regular comment: ${error.message}`
+      );
+
+      try {
+        const fallbackBody = `**File**: \`${comment.path}\` (line ${comment.line})\n\n${comment.body}`;
+        return await this.postComment(prNumber, fallbackBody);
+      } catch (fallbackError) {
+        throw new Error(
+          `Failed to post inline comment and fallback to PR ${prNumber}: ${fallbackError.message}`
+        );
+      }
     }
   }
 
