@@ -94,8 +94,11 @@ describe('GitHubAPIService', () => {
 
   describe('postInlineComment', () => {
     it('should post inline comment successfully', async () => {
-      const mockResponse = 'Inline comment posted';
-      execSync.mockReturnValue(mockResponse);
+      const mockPRResponse = '{"head": {"sha": "abc123"}}';
+      const mockCommentResponse = '{"id": 456, "body": "Test comment"}';
+      execSync
+        .mockReturnValueOnce(mockPRResponse) // PR data call
+        .mockReturnValueOnce(mockCommentResponse); // Comment creation call
 
       const comment = {
         path: 'src/test.js',
@@ -105,15 +108,40 @@ describe('GitHubAPIService', () => {
 
       const result = await service.postInlineComment(123, comment);
 
-      expect(result).toEqual({ success: true, output: mockResponse });
-      expect(execSync).toHaveBeenCalledWith(
-        'gh pr comment 123 --body "Test inline comment with\\nmultiple lines"',
+      expect(result).toEqual({
+        success: true,
+        data: { id: 456, body: 'Test comment' },
+      });
+      expect(execSync).toHaveBeenNthCalledWith(
+        1,
+        'gh api "/repos/owner/repo/pulls/123"',
         expect.any(Object)
+      );
+      expect(execSync).toHaveBeenNthCalledWith(
+        2,
+        'gh api "/repos/owner/repo/pulls/123/comments" --method POST --input -',
+        {
+          encoding: 'utf8',
+          input: JSON.stringify({
+            body: 'Test inline comment with\nmultiple lines',
+            commit_id: 'abc123',
+            path: 'src/test.js',
+            line: 10,
+            side: 'RIGHT',
+          }),
+          env: expect.objectContaining({
+            GITHUB_TOKEN: mockToken,
+          }),
+        }
       );
     });
 
     it('should escape quotes and newlines in inline comment body', async () => {
-      execSync.mockReturnValue('Success');
+      const mockPRResponse = '{"head": {"sha": "def456"}}';
+      const mockCommentResponse = '{"id": 789}';
+      execSync
+        .mockReturnValueOnce(mockPRResponse)
+        .mockReturnValueOnce(mockCommentResponse);
 
       const comment = {
         path: 'src/test.js',
@@ -123,22 +151,47 @@ describe('GitHubAPIService', () => {
 
       await service.postInlineComment(123, comment);
 
-      expect(execSync).toHaveBeenCalledWith(
-        'gh pr comment 123 --body "Comment with \\"quotes\\" and\\nnewlines"',
-        expect.any(Object)
+      expect(execSync).toHaveBeenNthCalledWith(
+        2,
+        'gh api "/repos/owner/repo/pulls/123/comments" --method POST --input -',
+        expect.objectContaining({
+          input: JSON.stringify({
+            body: 'Comment with "quotes" and\nnewlines',
+            commit_id: 'def456',
+            path: 'src/test.js',
+            line: 5,
+            side: 'RIGHT',
+          }),
+        })
       );
     });
 
     it('should handle inline comment failure', async () => {
-      execSync.mockImplementation(() => {
-        throw new Error('Inline comment failed');
-      });
+      const mockPRResponse = '{"head": {"sha": "ghi789"}}';
+      execSync
+        .mockReturnValueOnce(mockPRResponse) // PR data succeeds
+        .mockImplementationOnce(() => {
+          // Comment creation fails
+          throw new Error('Inline comment failed');
+        })
+        .mockReturnValueOnce('Fallback comment posted'); // Fallback succeeds
+
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
 
       const comment = { path: 'test.js', line: 1, body: 'Test' };
+      const result = await service.postInlineComment(123, comment);
 
-      await expect(service.postInlineComment(123, comment)).rejects.toThrow(
-        'Failed to post inline comment to PR 123: Inline comment failed'
+      expect(result).toEqual({
+        success: true,
+        output: 'Fallback comment posted',
+      });
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Inline comment failed for test.js:1, falling back to regular comment:'
+        )
       );
+
+      consoleSpy.mockRestore();
     });
   });
 
