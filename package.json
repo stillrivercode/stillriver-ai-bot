@@ -1,16 +1,21 @@
 {
   "name": "@stillrivercode/stillriver-ai-workflows",
   "version": "1.0.12",
-  "description": "AI-powered GitHub workflow automation with Information Dense Keywords integration",
+  "description": "AI-powered GitHub workflow automation featuring PR review with native resolvable suggestions. Extensible platform for intelligent code analysis and automation.",
   "keywords": [
     "github-actions",
     "ai",
+    "workflow-automation",
+    "code-review",
     "automation",
+    "resolvable-comments",
+    "pull-request",
     "workflow",
     "bot",
-    "information-dense-keywords",
-    "claude",
-    "openrouter"
+    "openrouter",
+    "suggestions",
+    "confidence-scoring",
+    "extensible-platform"
   ],
   "author": "Stillriver Code <admin@stillriver.info>",
   "license": "MIT",

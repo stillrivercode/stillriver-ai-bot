@@ -1,10 +1,35 @@
-# AI Workflows
+# AI Workflow Automation
 
-An AI-powered GitHub workflow automation tool with AI Resolvable Comments and Information Dense Keywords integration.
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-AI%20Workflows-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github)](https://github.com/marketplace/actions/ai-workflow-automation)
+[![GitHub release](https://img.shields.io/github/release/stillrivercode/stillriver-ai-workflows.svg)](https://GitHub.com/stillrivercode/stillriver-ai-workflows/releases/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Getting Started
+🤖 **AI-powered GitHub workflow automation** featuring advanced PR review with GitHub's native resolvable suggestions. Intelligent, confidence-based feedback with one-click code fixes and comprehensive workflow capabilities.
 
-To use this action, create a workflow file (e.g., `.github/workflows/ai-review.yml`) in your repository with the following content:
+## ✨ Key Features
+
+### 🔍 AI PR Review (Current Focus)
+- **🎯 GitHub Native Resolvable Suggestions**: High-confidence AI recommendations (≥95%) become one-click applicable code changes
+- **📊 Confidence-Based Intelligence**: Multi-factor scoring algorithm evaluates suggestions based on issue severity, static analysis, code context, and historical patterns
+- **⚡ Smart Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent cognitive overload
+- **🎚️ Graduated Response System**: Different presentation formats based on confidence levels (95%+ resolvable, 80-94% enhanced, 65-79% informational)
+- **🛡️ Comprehensive Analysis**: Security, performance, quality, and architectural review capabilities
+
+### 🚀 Workflow Automation Platform
+- **🔧 Configurable Integration**: Customize AI models, parameters, and workflow triggers
+- **📈 Extensible Architecture**: Built to support multiple AI-powered workflow automations
+- **🎯 Information Dense Keywords**: Standardized AI command vocabulary for consistent task execution
+- **⚙️ Multi-Model Support**: Works with OpenRouter's extensive AI model ecosystem
+
+## 🚀 Quick Start
+
+### Step 1: Add Secrets
+Add your OpenRouter API key to your repository secrets:
+- Go to your repository → Settings → Secrets and variables → Actions
+- Add `OPENROUTER_API_KEY` with your [OpenRouter API key](https://openrouter.ai/)
+
+### Step 2: Create Workflow
+Create `.github/workflows/ai-review.yml` in your repository:
 
 ```yaml
 name: AI PR Review
@@ -24,16 +49,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: AI PR Review
-        uses: stillrivercode/stillriver-ai-workflows@v1
+      - name: AI PR Review with Resolvable Comments
+        uses: stillrivercode/stillriver-ai-workflows@v1.0.12
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
-          model: ${{ vars.AI_MODEL || 'google/gemini-2.5-pro' }}
+          model: 'google/gemini-2.5-pro'  # or any OpenRouter model
           review_type: 'full'
-          max_tokens: 32768
-          temperature: 0.7
+          post_comment: true  # Enable resolvable comments
 ```
+
+### Step 3: Open a Pull Request
+The action will automatically:
+- ✅ Analyze your code changes with AI
+- ✅ Post intelligent, confidence-based feedback
+- ✅ Create resolvable suggestions for high-confidence recommendations
+- ✅ Provide one-click code fixes directly in GitHub
 
 ## AI Resolvable Comments
 
