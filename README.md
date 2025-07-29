@@ -1,19 +1,25 @@
-# AI PR Review with Resolvable Comments
+# AI Workflow Automation
 
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-AI%20PR%20Review-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github)](https://github.com/marketplace/actions/ai-pr-review-with-resolvable-comments)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-AI%20Workflows-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github)](https://github.com/marketplace/actions/ai-workflow-automation)
 [![GitHub release](https://img.shields.io/github/release/stillrivercode/stillriver-ai-workflows.svg)](https://GitHub.com/stillrivercode/stillriver-ai-workflows/releases/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-🤖 **AI-powered code review with GitHub's native resolvable suggestions**. Provides intelligent, confidence-based feedback with one-click code fixes directly in your pull requests.
+🤖 **AI-powered GitHub workflow automation** featuring advanced PR review with GitHub's native resolvable suggestions. Intelligent, confidence-based feedback with one-click code fixes and comprehensive workflow capabilities.
 
 ## ✨ Key Features
 
+### 🔍 AI PR Review (Current Focus)
 - **🎯 GitHub Native Resolvable Suggestions**: High-confidence AI recommendations (≥95%) become one-click applicable code changes
 - **📊 Confidence-Based Intelligence**: Multi-factor scoring algorithm evaluates suggestions based on issue severity, static analysis, code context, and historical patterns
 - **⚡ Smart Rate Limiting**: Maximum 5 resolvable suggestions per PR to prevent cognitive overload
 - **🎚️ Graduated Response System**: Different presentation formats based on confidence levels (95%+ resolvable, 80-94% enhanced, 65-79% informational)
-- **🔧 Configurable Integration**: Enable/disable inline comments and customize AI models and parameters
 - **🛡️ Comprehensive Analysis**: Security, performance, quality, and architectural review capabilities
+
+### 🚀 Workflow Automation Platform
+- **🔧 Configurable Integration**: Customize AI models, parameters, and workflow triggers
+- **📈 Extensible Architecture**: Built to support multiple AI-powered workflow automations
+- **🎯 Information Dense Keywords**: Standardized AI command vocabulary for consistent task execution
+- **⚙️ Multi-Model Support**: Works with OpenRouter's extensive AI model ecosystem
 
 ## 🚀 Quick Start
 

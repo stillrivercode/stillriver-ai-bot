@@ -1,10 +1,11 @@
 {
   "name": "@stillrivercode/stillriver-ai-workflows",
   "version": "1.0.12",
-  "description": "AI-powered code review with GitHub native resolvable suggestions. Provides confidence-based feedback with one-click code fixes.",
+  "description": "AI-powered GitHub workflow automation featuring PR review with native resolvable suggestions. Extensible platform for intelligent code analysis and automation.",
   "keywords": [
     "github-actions",
     "ai",
+    "workflow-automation",
     "code-review",
     "automation",
     "resolvable-comments",
@@ -13,7 +14,8 @@
     "bot",
     "openrouter",
     "suggestions",
-    "confidence-scoring"
+    "confidence-scoring",
+    "extensible-platform"
   ],
   "author": "Stillriver Code <admin@stillriver.info>",
   "license": "MIT",

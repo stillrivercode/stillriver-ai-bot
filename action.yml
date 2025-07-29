@@ -1,5 +1,5 @@
-name: 'AI PR Review with Resolvable Comments'
-description: 'AI-powered code review with GitHub native resolvable suggestions. Provides confidence-based feedback with one-click code fixes.'
+name: 'AI Workflow Automation'
+description: 'AI-powered GitHub workflow automation featuring PR review with native resolvable suggestions. Extensible platform for intelligent code analysis and automation.'
 author: 'StillRiver AI'
 # Example usage:
 #   - uses: stillrivercode/stillriver-ai-workflows@v1
