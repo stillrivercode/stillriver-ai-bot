@@ -1,5 +1,5 @@
-name: 'AI Workflows'
-description: 'AI-powered GitHub workflow automation with Information Dense Keywords integration.'
+name: 'AI PR Review with Resolvable Comments'
+description: 'AI-powered code review with GitHub native resolvable suggestions. Provides confidence-based feedback with one-click code fixes.'
 author: 'StillRiver AI'
 # Example usage:
 #   - uses: stillrivercode/stillriver-ai-workflows@v1
