@@ -35,6 +35,8 @@ permissions:
 
 jobs:
   verify-authorization:
+    # Only run on manual dispatch, never on push/PR events
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       authorized: ${{ steps.auth-check.outputs.authorized }}
