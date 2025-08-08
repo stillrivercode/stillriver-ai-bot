@@ -420,37 +420,58 @@ The code changes in this pull request meet quality standards and are ready for a
       const inlineEnabled = process.env.AI_ENABLE_INLINE_COMMENTS !== 'false';
       const stats = this.generateStatistics(suggestions);
 
-      // Generate summary comment with statistics
+      // Generate summary comment with statistics only (not detailed suggestions)
       const summaryComment = this.generateSummaryComment(
         suggestions,
         stats,
         inlineEnabled,
-        prData
+        prData,
+        true // skipDetailedSuggestions = true
       );
 
       // Always post summary comment first for visibility
       await this.github.postComment(prNumber, summaryComment);
       console.log('✅ Posted AI review summary comment');
 
-      // Post inline comments for resolvable suggestions if enabled
-      if (inlineEnabled && this.hasResolvableSuggestions(suggestions)) {
-        const inlineComments = this.generateInlineComments(suggestions);
+      // Post ALL suggestions as inline comments if enabled, otherwise fallback
+      if (inlineEnabled) {
+        const inlineComments = this.generateAllInlineComments(suggestions);
+        let successfulInlineComments = 0;
 
         // Post each inline comment individually
         for (const comment of inlineComments) {
           try {
             await this.github.postInlineComment(prNumber, comment);
+            successfulInlineComments++;
           } catch (error) {
-            console.warn(`Failed to post inline comment: ${error.message}`);
+            console.warn(
+              `Failed to post inline comment for ${comment.path}:${comment.line}: ${error.message}`
+            );
+
+            // Fallback: Add to a list of failed comments that will be posted as regular comments
+            try {
+              const fallbackBody = `**File**: \`${comment.path}\` (line ${comment.line})\n\n${comment.body}`;
+              await this.github.postComment(prNumber, fallbackBody);
+            } catch (fallbackError) {
+              console.error(
+                `Failed fallback comment for ${comment.path}:${comment.line}: ${fallbackError.message}`
+              );
+            }
           }
         }
         console.log(
-          `✅ Posted ${inlineComments.length} inline resolvable suggestions`
+          `✅ Posted ${successfulInlineComments} inline comments (${inlineComments.length} total suggestions)`
+        );
+      } else {
+        // Fallback: Post detailed suggestions as regular comments
+        const detailedComment = this.formatSuggestionsAsComment(suggestions);
+        await this.github.postComment(prNumber, detailedComment);
+        console.log(
+          '✅ Posted detailed suggestions as regular comments (inline disabled)'
         );
       }
 
-      // Note: Detailed review is now included in the summary comment above
-      console.log('✅ Posted comprehensive review with detailed analysis');
+      console.log('✅ Posted comprehensive review with inline analysis');
     } catch (error) {
       console.error('❌ Failed to post suggestions to GitHub:', error.message);
       // Don't throw - this shouldn't break the workflow
@@ -460,17 +481,21 @@ The code changes in this pull request meet quality standards and are ready for a
   /**
    * Generate summary comment header
    */
-  generateSummaryComment(suggestions, stats, inlineEnabled, prData) {
-    const reviewType = inlineEnabled
-      ? 'Resolvable Comments'
-      : 'Enhanced Comments';
+  generateSummaryComment(
+    suggestions,
+    stats,
+    inlineEnabled,
+    prData,
+    skipDetailedSuggestions = false
+  ) {
+    const reviewType = inlineEnabled ? 'Inline Comments' : 'Enhanced Comments';
     const hasResolvable = stats.by_confidence.very_high > 0;
     const recommendation = this.generateApprovalRecommendation(stats);
 
     let summary = `## 🤖 AI Review by ${reviewType}\n\n`;
 
-    if (hasResolvable && inlineEnabled) {
-      summary += `🔒 **${stats.by_confidence.very_high} critical suggestion${stats.by_confidence.very_high !== 1 ? 's' : ''} require${stats.by_confidence.very_high === 1 ? 's' : ''} immediate attention** (resolvable)\n\n`;
+    if (suggestions.length > 0 && inlineEnabled) {
+      summary += `📍 **${suggestions.length} suggestion${suggestions.length !== 1 ? 's' : ''} posted inline** - check the specific files and lines below.\n\n`;
     }
 
     const overallConfidence = this.calculateOverallConfidence(suggestions);
@@ -480,10 +505,10 @@ The code changes in this pull request meet quality standards and are ready for a
 - **Total Suggestions**: ${stats.total}
 - **Overall Confidence**: ${overallConfidence.label} (${overallConfidence.percentage}%)
 - **Analysis Quality**: ${analysisQuality}
-- **Critical** (≥95%): ${stats.by_confidence.very_high} ${inlineEnabled ? '(resolvable)' : '(high priority)'}
-- **High** (80-94%): ${stats.by_confidence.high} (enhanced comments)
-- **Medium** (65-79%): ${stats.by_confidence.medium} (informational)
-- **Low** (<65%): ${stats.by_confidence.low} (suppressed)
+- **Critical** (≥95%): ${stats.by_confidence.very_high} ${inlineEnabled ? '(resolvable inline)' : '(high priority)'}
+- **High** (80-94%): ${stats.by_confidence.high} (inline comments)
+- **Medium** (65-79%): ${stats.by_confidence.medium} (inline informational)
+- **Low** (<65%): ${stats.by_confidence.low} (inline or suppressed)
 
 ### Categories
 ${Object.entries(stats.by_category)
@@ -493,15 +518,20 @@ ${Object.entries(stats.by_category)
     // Add approval recommendation
     summary += `\n\n${recommendation.icon} **Recommendation: ${recommendation.action}**\n\n${recommendation.reasoning}`;
 
-    // Add detailed review section
-    if (suggestions.length > 0) {
+    // Only add detailed review section if not skipping (for backward compatibility)
+    if (!skipDetailedSuggestions && suggestions.length > 0) {
       summary += `\n\n## 📝 Detailed Review\n\n`;
       summary += this.formatDetailedSuggestions(suggestions);
     }
 
     if (hasResolvable && inlineEnabled) {
       summary += `\n\n### 📝 Action Required
-Please review and resolve the critical suggestions marked with 🔒 below. These can be applied with one click using GitHub's suggestion feature.`;
+Please review and resolve the critical suggestions marked with 🔒 in the inline comments. These can be applied with one click using GitHub's suggestion feature.`;
+    }
+
+    if (suggestions.length > 0 && inlineEnabled) {
+      summary += `\n\n### 📂 Review the Files
+All suggestions have been posted as inline comments on the specific files and lines. Navigate through the changed files to see detailed feedback.`;
     }
 
     summary += `\n\n---
@@ -727,6 +757,50 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
   }
 
   /**
+   * Get confidence label from score
+   */
+  getConfidenceLabel(confidence) {
+    if (confidence >= 0.95) {
+      return 'Critical';
+    }
+    if (confidence >= 0.8) {
+      return 'High Confidence';
+    }
+    if (confidence >= 0.65) {
+      return 'Medium Confidence';
+    }
+    if (confidence >= 0.5) {
+      return 'Low Confidence';
+    }
+    return 'Very Low Confidence';
+  }
+
+  /**
+   * Try to infer line number from suggestion context
+   */
+  inferLineNumber(suggestion) {
+    // Try to extract line number from various possible fields
+    if (suggestion.context && typeof suggestion.context === 'object') {
+      if (suggestion.context.line_number) {
+        return suggestion.context.line_number;
+      }
+      if (suggestion.context.line) {
+        return suggestion.context.line;
+      }
+    }
+
+    // Look for line numbers in the original code context
+    if (suggestion.originalCode) {
+      // This is a simple heuristic - in a real implementation you'd want
+      // to match the code against the actual file diff to find the line
+      return 1; // Default fallback
+    }
+
+    // Default to line 1 if we can't infer
+    return null;
+  }
+
+  /**
    * Check if there are any resolvable suggestions
    */
   hasResolvableSuggestions(suggestions) {
@@ -734,39 +808,89 @@ Please review and resolve the critical suggestions marked with 🔒 below. These
   }
 
   /**
-   * Generate inline comments for GitHub review
+   * Generate inline comments for ALL suggestions
    */
-  generateInlineComments(suggestions) {
+  generateAllInlineComments(suggestions) {
     const inlineComments = [];
-    const resolvableLimit = 5; // Limit to prevent spam
+    const resolvableLimit = 8; // Increased limit for resolvable suggestions
     let resolvableCount = 0;
 
     for (const suggestion of suggestions) {
-      if (suggestion.confidence >= 0.95 && resolvableCount < resolvableLimit) {
-        // Generate resolvable suggestion only if we have required fields
-        if (
-          suggestion.line_number &&
-          suggestion.suggestedCode &&
-          suggestion.originalCode &&
-          suggestion.file_path
-        ) {
-          inlineComments.push({
-            path: suggestion.file_path,
-            line: suggestion.line_number,
-            body: `🔒 **Critical**: ${suggestion.description}
+      // Skip very low confidence suggestions to avoid spam
+      if (suggestion.confidence < 0.5) {
+        continue;
+      }
 
-\`\`\`suggestion
-${suggestion.suggestedCode}
-\`\`\`
+      // Ensure we have the minimum required fields for inline comments
+      if (!suggestion.file_path) {
+        console.warn(
+          `Skipping suggestion without file_path: ${suggestion.description}`
+        );
+        continue;
+      }
 
-**Confidence**: ${Math.round(suggestion.confidence * 100)}% | **Category**: ${suggestion.category}`,
-          });
-          resolvableCount++;
+      // Use line_number if available, otherwise try to infer from context or default to 1
+      const lineNumber =
+        suggestion.line_number ||
+        suggestion.line ||
+        this.inferLineNumber(suggestion) ||
+        1;
+
+      const icon = this.getConfidenceIcon(suggestion.confidence);
+      const confidencePercent = Math.round(suggestion.confidence * 100);
+      const confidenceLabel = this.getConfidenceLabel(suggestion.confidence);
+
+      let body = `${icon} **${confidenceLabel}**: ${suggestion.description}`;
+
+      // Add reasoning if available
+      if (suggestion.reasoning) {
+        body += `\n\n${suggestion.reasoning}`;
+      }
+
+      // Handle resolvable suggestions (high confidence with code suggestions)
+      if (
+        suggestion.confidence >= 0.95 &&
+        suggestion.suggestedCode &&
+        suggestion.originalCode &&
+        resolvableCount < resolvableLimit
+      ) {
+        body += `\n\n\`\`\`suggestion\n${suggestion.suggestedCode}\n\`\`\``;
+        resolvableCount++;
+      } else if (suggestion.suggestedCode) {
+        // Show suggested code even for lower confidence
+        body += `\n\n**Suggested Code:**\n\`\`\`\n${suggestion.suggestedCode}\n\`\`\``;
+
+        if (suggestion.originalCode) {
+          body += `\n\n**Current Code:**\n\`\`\`\n${suggestion.originalCode}\n\`\`\``;
         }
       }
+
+      // Add metadata
+      body += `\n\n**Confidence**: ${confidencePercent}% | **Category**: ${suggestion.category || 'General'}`;
+
+      if (suggestion.severity) {
+        body += ` | **Severity**: ${suggestion.severity}`;
+      }
+
+      inlineComments.push({
+        path: suggestion.file_path,
+        line: lineNumber,
+        body,
+      });
     }
 
+    console.log(
+      `Generated ${inlineComments.length} inline comments (${resolvableCount} resolvable)`
+    );
     return inlineComments;
+  }
+
+  /**
+   * Generate inline comments for GitHub review (legacy method for backward compatibility)
+   */
+  generateInlineComments(suggestions) {
+    // For backward compatibility, just call the new method
+    return this.generateAllInlineComments(suggestions);
   }
 
   /**

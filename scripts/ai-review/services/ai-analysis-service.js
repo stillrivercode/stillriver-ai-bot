@@ -238,6 +238,7 @@ For subjective style preferences or speculative optimizations, do not include th
     return suggestions.map(suggestion => ({
       ...suggestion,
       file_path: file.filename,
+      line_number: suggestion.line || suggestion.line_number || null, // Standardize line number field
       commit: file.sha || null,
       position: this.calculatePosition(file.patch, suggestion.line),
       timestamp: new Date().toISOString(),
