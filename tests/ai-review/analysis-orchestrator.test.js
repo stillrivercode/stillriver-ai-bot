@@ -107,10 +107,10 @@ describe('AnalysisOrchestrator', () => {
         expect.stringContaining('AI Review by')
       );
 
-      // Should post detailed review in summary
+      // Should post inline comments instead of detailed review in summary
       expect(mockGitHub.postComment).toHaveBeenCalledWith(
         123,
-        expect.stringContaining('Detailed Review')
+        expect.stringContaining('posted inline')
       );
     });
 
@@ -298,8 +298,8 @@ describe('AnalysisOrchestrator', () => {
       expect(inlineComments[0].body).toContain('**Confidence**: 96%');
     });
 
-    it('should limit resolvable suggestions to 5 per PR', () => {
-      const suggestions = Array(10)
+    it('should limit resolvable suggestions to 8 per PR', () => {
+      const suggestions = Array(12)
         .fill(null)
         .map((_, i) => ({
           confidence: 0.96,
@@ -313,7 +313,14 @@ describe('AnalysisOrchestrator', () => {
 
       const inlineComments = orchestrator.generateInlineComments(suggestions);
 
-      expect(inlineComments).toHaveLength(5);
+      // Should create 12 total inline comments, but only 8 should be resolvable
+      expect(inlineComments).toHaveLength(12);
+
+      // Check that only 8 have suggestion blocks (resolvable)
+      const resolvableComments = inlineComments.filter(comment =>
+        comment.body.includes('```suggestion')
+      );
+      expect(resolvableComments).toHaveLength(8);
     });
   });
 
