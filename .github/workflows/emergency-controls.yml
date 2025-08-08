@@ -5,7 +5,7 @@ name: Emergency Controls
 env:
   EMERGENCY_TIMEOUT_MINUTES: 10
 
-"on":
+on:
   workflow_dispatch:
     inputs:
       action:
