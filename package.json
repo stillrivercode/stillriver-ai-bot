@@ -45,7 +45,7 @@
     "chalk": "^4.1.2",
     "commander": "^11.0.0",
     "fs-extra": "^11.1.0",
-    "inquirer": "^8.2.5",
+    "inquirer": "^10.2.2",
     "minimatch": "^10.0.3",
     "validate-npm-package-name": "^5.0.0"
   },
@@ -87,5 +87,8 @@
     "ai-review-demo": "./scripts/ai-review-resolvable.sh demo",
     "ai-review-analyze": "./scripts/ai-review-resolvable.sh analyze"
   },
-  "main": "package.json"
+  "main": "package.json",
+  "overrides": {
+    "tmp": "0.2.4"
+  }
 }
