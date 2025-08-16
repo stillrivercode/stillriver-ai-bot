@@ -1,6 +1,6 @@
 {
   "name": "@stillrivercode/stillriver-ai-workflows",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "AI-powered GitHub workflow automation featuring PR review with native resolvable suggestions. Extensible platform for intelligent code analysis and automation.",
   "keywords": [
     "github-actions",

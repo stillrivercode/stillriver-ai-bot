@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](httpshttps://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2025-08-16
+
+### Added
+- Automated CHANGELOG.md update during release workflow
+- Enhanced build and tagging process for version 1.0.15
+
+### Changed
+- Automatic version bump and distribution file regeneration for release
+- Updated compiled JavaScript bundle in dist/ directory
+
+### Technical
+- Build from commit: 3ffc8cc6cab244e826aa12bd51ee2b8f3b50d902
+- Build date: 2025-08-16
+- Node.js version: 20
+
 ## [1.0.14] - 2025-08-08
 
 ### Added
