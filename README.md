@@ -59,7 +59,34 @@ jobs:
           post_comment: true  # Enable resolvable comments
 ```
 
-### Step 3: Open a Pull Request
+### Step 3: Set Up Labels (Optional)
+Install standardized GitHub labels for AI workflows:
+
+```bash
+# Quick setup - download and run the label setup script
+curl -s https://raw.githubusercontent.com/stillrivercode/stillriver-ai-workflows/main/scripts/setup-labels.sh | bash
+```
+
+Or add a workflow file `.github/workflows/setup-labels.yml`:
+```yaml
+name: Setup Labels
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  setup-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup AI Workflow Labels
+        run: |
+          curl -s https://raw.githubusercontent.com/stillrivercode/stillriver-ai-workflows/main/scripts/setup-labels.sh | bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+This creates labels like `ai-task`, `ai-completed`, `ai-reviewed`, and others that enhance the AI workflow experience.
+
+### Step 4: Open a Pull Request
 The action will automatically:
 - ✅ Analyze your code changes with AI
 - ✅ Post intelligent, confidence-based feedback
